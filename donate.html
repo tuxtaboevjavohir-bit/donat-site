@@ -1,12 +1,68 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Донат</title><style>:root{--bg:#f6f5f2;--cd:#fff;--tx:#1c1b19;--mu:#6b6860;--ln:#e3e0d9;--ac:#e8333c}@media(prefers-color-scheme:dark){:root{--bg:#161615;--cd:#212120;--tx:#f1efe9;--mu:#9c998f;--ln:#34332f}}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}.w{max-width:640px;margin:0 auto;padding:20px 16px 40px}h1{font-size:22px;margin:0 0 4px}.s{color:var(--mu);font-size:14px;margin:0 0 16px}.c{background:var(--cd);border:1px solid var(--ln);border-radius:14px;padding:16px;margin-bottom:14px}label{display:block;font-size:13px;color:var(--mu);margin:10px 0 4px}input,textarea{width:100%;padding:10px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}.r{display:flex;gap:10px}.r>*{flex:1}button{font:inherit;cursor:pointer;border:1px solid var(--ln);background:var(--cd);color:var(--tx);border-radius:10px;padding:10px 14px}button.p{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600;width:100%;margin-top:14px;padding:13px}button.z{padding:6px 10px;font-size:13px}.er{color:var(--ac);font-size:14px;margin-top:8px}.it{display:flex;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--ln)}.it:first-child{border-top:0}.it .m{flex:1;min-width:0;overflow-wrap:anywhere}.it b{white-space:nowrap}.mu{color:var(--mu);font-size:14px}.t{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}code{display:block;word-break:break-all;background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:8px;font-size:13px;margin-top:6px}</style></head><body><div class="w" id="a"><p class="mu">Загрузка…</p></div>
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Донат стримеру</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+:root{--c1:#ff4d5e;--c2:#ff8a3d;--bg:#0d0d14;--card:#16161f;--ln:#262634;--tx:#f4f3f8;--mut:#9a98ab;--in:#1d1d29}
+@media(prefers-color-scheme:light){:root{--bg:#f4f3f8;--card:#fff;--ln:#e4e2ec;--tx:#17161d;--mut:#6c6a7a;--in:#f4f3f8}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 'Manrope',system-ui,-apple-system,sans-serif;min-height:100vh}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(70% 45% at 50% -10%,color-mix(in srgb,var(--c1) 38%,transparent),transparent 70%)}
+.wrap{max-width:460px;margin:0 auto;padding:max(22px,env(safe-area-inset-top)) 16px 40px}
+.hero{text-align:center;padding:18px 0 22px}
+.av{width:84px;height:84px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-size:36px;font-weight:800;color:#fff;background:linear-gradient(130deg,var(--c1),var(--c2));box-shadow:0 10px 34px color-mix(in srgb,var(--c1) 50%,transparent)}
+h1{margin:0;font-size:26px;font-weight:800}.sub{color:var(--mut);margin-top:4px;font-size:15px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:20px;padding:18px;margin-bottom:14px}
+label{display:block;font-size:13px;font-weight:600;color:var(--mut);margin:12px 0 6px}label:first-child{margin-top:0}
+input,textarea{width:100%;padding:13px 14px;border:1px solid var(--ln);border-radius:14px;background:var(--in);color:var(--tx);font:inherit;outline:0;transition:.15s}
+input:focus,textarea:focus{border-color:var(--c1);box-shadow:0 0 0 3px color-mix(in srgb,var(--c1) 25%,transparent)}
+textarea{resize:none;min-height:76px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chip{border:1px solid var(--ln);background:var(--in);color:var(--tx);border-radius:99px;padding:7px 14px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.chip:active{transform:scale(.95)}
+.btn{width:100%;margin-top:16px;border:0;border-radius:16px;padding:16px;font:inherit;font-size:17px;font-weight:800;color:#fff;cursor:pointer;background:linear-gradient(120deg,var(--c1),var(--c2));box-shadow:0 10px 26px color-mix(in srgb,var(--c1) 45%,transparent)}
+.btn:disabled{opacity:.6}
+.step{display:flex;gap:12px;align-items:flex-start}.n{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;background:linear-gradient(130deg,var(--c1),var(--c2))}
+.kas{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:12px 14px;border-radius:14px;background:var(--in);border:1px dashed var(--ln)}
+.kas b{font-size:19px;letter-spacing:.4px;overflow-wrap:anywhere}
+.cp{border:0;background:var(--c1);color:#fff;border-radius:10px;padding:8px 12px;font:inherit;font-weight:700;font-size:13px;cursor:pointer;flex:none}
+.goal .t{display:flex;justify-content:space-between;gap:10px;font-weight:800}.goal .t span{color:var(--mut);font-weight:600;font-size:14px}
+.tr{height:12px;background:var(--in);border-radius:99px;margin-top:10px;overflow:hidden}.tr i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--c1),var(--c2));transition:width 1s}
+.top h3{margin:0 0 8px;font-size:16px}.r{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--ln)}.r:first-of-type{border-top:0}
+.r .k{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(130deg,var(--c1),var(--c2))}
+.r .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}.r .s{font-weight:800}
+.ok{text-align:center;padding:26px 10px}.ok .big{font-size:54px}.err{color:#ff6b6b;font-size:14px;margin-top:10px;min-height:18px}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin-top:18px}
+</style></head><body><div class="wrap" id="app"><div class="hero"><div class="sub">Загрузка…</div></div></div>
 <script>
-var slug=location.pathname.split('/')[2],A=document.getElementById('a'),$=function(i){return document.getElementById(i)};
-function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-fetch('/api/streamer/'+slug).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(s){
- document.title='Донат · '+s.name;
- A.innerHTML='<h1>Поддержать '+esc(s.name)+'</h1><p class="s">Ваше имя и сообщение появятся в прямом эфире после подтверждения стримером.</p>'
- +'<div class="c"><b>Шаг 1. Переведите на Kaspi</b><code>'+esc(s.kaspi||'номер не указан')+'</code></div>'
- +'<div class="c"><b>Шаг 2. Сообщите о переводе</b><label>Имя</label><input id="n" maxlength="40"><div class="r"><div><label>Сумма, ₸</label><input id="m" type="number" inputmode="numeric"></div></div><label>Сообщение</label><textarea id="t" maxlength="200" rows="3" style="width:100%;padding:10px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit"></textarea><div class="er" id="er"></div><button class="p" id="b">Я перевёл(а)</button></div>';
- $('b').onclick=function(){fetch('/api/donate/'+slug,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:$('n').value,amount:$('m').value,msg:$('t').value})}).then(function(r){return r.json().then(function(j){if(!r.ok)throw j;return j})}).then(function(){A.innerHTML='<h1>Спасибо!</h1><p class="s">Стример увидит заявку и подтвердит её после проверки перевода.</p>'}).catch(function(e){$('er').textContent=e.error||'Ошибка'})}
-}).catch(function(){A.innerHTML='<h1>Страница не найдена</h1>'});
+var slug=location.pathname.split('/')[2],app=document.getElementById('app'),D=null;
+function fmt(n){return Number(n).toLocaleString('ru-RU')+' ₸'}
+function E(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e}
+function T(el,s){el.textContent=s;return el}
+fetch('/api/streamer/'+slug).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(d){D=d;render()}).catch(function(){app.innerHTML='<div class="hero"><div class="av">?</div><h1>Стример не найден</h1><div class="sub">Проверьте ссылку</div></div>'});
+function render(){
+ var st=D.style||{};var r=document.documentElement.style;r.setProperty('--c1',st.c1||'#ff4d5e');r.setProperty('--c2',st.c2||'#ff8a3d');
+ document.title='Донат · '+D.name;app.innerHTML='';
+ var hero=E('div','hero','<div class="av"></div><h1></h1><div class="sub">Поддержите стримера — ваш донат появится в эфире</div>');
+ T(hero.querySelector('.av'),(D.name||'?').trim().charAt(0).toUpperCase());T(hero.querySelector('h1'),D.name);app.appendChild(hero);
+ if(D.goal&&D.goal.on){var p=Math.min(100,Math.round(D.goal.current/D.goal.target*100));
+  var g=E('div','card goal','<div class="t"><div class="gt"></div><span></span></div><div class="tr"><i></i></div>');
+  T(g.querySelector('.gt'),D.goal.title||'Цель сбора');T(g.querySelector('span'),fmt(D.goal.current)+' / '+fmt(D.goal.target));app.appendChild(g);
+  setTimeout(function(){g.querySelector('i').style.width=p+'%'},80)}
+ var f=E('div','card','');f.innerHTML='<div class="step"><div class="n">1</div><div style="flex:1"><b>Переведите в Kaspi</b><div class="kas"><b></b><button class="cp" type="button">Копировать</button></div></div></div>'
+  +'<div class="step" style="margin-top:16px"><div class="n">2</div><div style="flex:1"><b>Заполните и отправьте</b>'
+  +'<label>Ваше имя</label><input id="nm" maxlength="40" placeholder="Как вас показать в эфире">'
+  +'<label>Сумма, ₸</label><input id="am" type="number" inputmode="numeric" min="1" placeholder="1000"><div class="chips"></div>'
+  +'<label>Сообщение</label><textarea id="ms" maxlength="200" placeholder="Что сказать стримеру?"></textarea>'
+  +'<button class="btn" id="go">Отправить донат</button><div class="err" id="er"></div></div></div>';
+ var kb=f.querySelector('.kas b');T(kb,D.kaspi||'номер не указан');
+ f.querySelector('.cp').onclick=function(){var b=this,t=D.kaspi||'';try{navigator.clipboard.writeText(t)}catch(e){}b.textContent='Скопировано';setTimeout(function(){b.textContent='Копировать'},1500)};
+ [500,1000,2000,5000].forEach(function(v){var c=E('button','chip',fmt(v));c.type='button';c.onclick=function(){f.querySelector('#am').value=v};f.querySelector('.chips').appendChild(c)});
+ app.appendChild(f);
+ f.querySelector('#go').onclick=function(){var b=this,er=f.querySelector('#er'),a=parseInt(f.querySelector('#am').value,10);er.textContent='';
+  if(!(a>0)){er.textContent='Укажите сумму';return}b.disabled=true;
+  fetch('/api/donate/'+slug,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:f.querySelector('#nm').value,amount:a,msg:f.querySelector('#ms').value})})
+  .then(function(r){return r.json()}).then(function(j){b.disabled=false;if(j.error){er.textContent=j.error;return}
+   f.innerHTML='<div class="ok"><div class="big">🎉</div><h2 style="margin:8px 0 4px">Спасибо!</h2><div class="sub">Переведите '+fmt(a)+' в Kaspi, если ещё не сделали — донат появится в эфире сразу после поступления.</div><button class="btn" id="again">Ещё донат</button></div>';
+   f.querySelector('#again').onclick=render}).catch(function(){b.disabled=false;er.textContent='Ошибка сети'})};
+ if(D.top&&D.top.length){var t=E('div','card top','<h3>🏆 Топ донатеров</h3>');D.top.forEach(function(x,i){var r=E('div','r','<div class="k"></div><div class="nm"></div><div class="s"></div>');T(r.children[0],i+1);T(r.children[1],x.name);T(r.children[2],fmt(x.total));t.appendChild(r)});app.appendChild(t)}
+ app.appendChild(E('div','foot','Донат-алерт'));
+}
 </script></body></html>

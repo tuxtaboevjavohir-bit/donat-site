@@ -1,35 +1,153 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Донат-алерт</title><style>:root{--bg:#f6f5f2;--cd:#fff;--tx:#1c1b19;--mu:#6b6860;--ln:#e3e0d9;--ac:#e8333c}@media(prefers-color-scheme:dark){:root{--bg:#161615;--cd:#212120;--tx:#f1efe9;--mu:#9c998f;--ln:#34332f}}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}.w{max-width:640px;margin:0 auto;padding:20px 16px 40px}h1{font-size:22px;margin:0 0 4px}.s{color:var(--mu);font-size:14px;margin:0 0 16px}.c{background:var(--cd);border:1px solid var(--ln);border-radius:14px;padding:16px;margin-bottom:14px}label{display:block;font-size:13px;color:var(--mu);margin:10px 0 4px}input,textarea{width:100%;padding:10px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}.r{display:flex;gap:10px}.r>*{flex:1}button{font:inherit;cursor:pointer;border:1px solid var(--ln);background:var(--cd);color:var(--tx);border-radius:10px;padding:10px 14px}button.p{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600;width:100%;margin-top:14px;padding:13px}button.z{padding:6px 10px;font-size:13px}.er{color:var(--ac);font-size:14px;margin-top:8px}.it{display:flex;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--ln)}.it:first-child{border-top:0}.it .m{flex:1;min-width:0;overflow-wrap:anywhere}.it b{white-space:nowrap}.mu{color:var(--mu);font-size:14px}.t{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}code{display:block;word-break:break-all;background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:8px;font-size:13px;margin-top:6px}</style></head><body><div class="w" id="a"></div>
+<!DOCTYPE html><html lang="ru" translate="no"><head><meta charset="utf-8"><meta name="google" content="notranslate"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Донат-алерт</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800&family=Montserrat:wght@600;800&family=Manrope:wght@500;600;700;800&family=Russo+One&family=Comfortaa:wght@600;700&subset=cyrillic&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg:#0d0d14;--card:#16161f;--ln:#262634;--tx:#f4f3f8;--mut:#9a98ab;--in:#1d1d29;--c1:#ff4d5e;--c2:#ff8a3d;--ok:#35d07f}
+@media(prefers-color-scheme:light){:root{--bg:#f4f3f8;--card:#fff;--ln:#e4e2ec;--tx:#17161d;--mut:#6c6a7a;--in:#f4f3f8}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 'Manrope',system-ui,-apple-system,sans-serif}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(60% 40% at 50% -10%,color-mix(in srgb,var(--c1) 28%,transparent),transparent 70%)}
+.wrap{max-width:760px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 14px 60px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0 14px}
+.logo{font-weight:800;font-size:20px;display:flex;align-items:center;gap:8px}.logo i{width:28px;height:28px;border-radius:9px;background:linear-gradient(130deg,var(--c1),var(--c2));display:inline-block}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;border:1px solid var(--ln);background:var(--card);color:var(--mut);border-radius:99px;padding:9px 16px;font:inherit;font-weight:700;cursor:pointer}
+.tab.on{color:#fff;border-color:transparent;background:linear-gradient(120deg,var(--c1),var(--c2))}
+.pane{display:none}.pane.on{display:block}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:20px;padding:18px;margin-bottom:14px}
+.card h3{margin:0 0 4px;font-size:17px}.hint{color:var(--mut);font-size:13px;margin:4px 0 0}
+label{display:block;font-size:13px;font-weight:700;color:var(--mut);margin:12px 0 6px}
+input[type=text],input[type=password],input[type=number],textarea,select{width:100%;padding:11px 13px;border:1px solid var(--ln);border-radius:12px;background:var(--in);color:var(--tx);font:inherit;outline:0}
+input:focus,textarea:focus,select:focus{border-color:var(--c1)}textarea{resize:vertical;min-height:64px}
+input[type=color]{width:100%;height:44px;border:1px solid var(--ln);border-radius:12px;background:var(--in);padding:3px;cursor:pointer}
+input[type=range]{width:100%;accent-color:var(--c1)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:520px){.g3{grid-template-columns:1fr 1fr}}
+button{font:inherit;cursor:pointer}
+.b{border:1px solid var(--ln);background:var(--in);color:var(--tx);border-radius:12px;padding:10px 14px;font-weight:700}
+.b.p{border:0;color:#fff;background:linear-gradient(120deg,var(--c1),var(--c2))}.b.d{color:#ff6b6b}.b.s{padding:6px 10px;font-size:13px;border-radius:9px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;font-weight:600;margin-top:12px}.chk input{width:18px;height:18px;accent-color:var(--c1)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}@media(max-width:560px){.stats{grid-template-columns:1fr 1fr}}
+.st{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:12px 14px}.st small{color:var(--mut);font-weight:600}.st b{display:block;font-size:20px;font-weight:800;margin-top:2px}
+.it{display:flex;gap:10px;align-items:center;padding:11px 0;border-top:1px solid var(--ln)}.it:first-child{border-top:0}
+.it .m{flex:1;min-width:0}.it .n{font-weight:800}.it .t{color:var(--mut);font-size:13px;overflow-wrap:anywhere}.it .a{font-weight:800;white-space:nowrap}
+.tag{font-size:11px;font-weight:800;border-radius:6px;padding:2px 6px;margin-left:6px;background:var(--in);color:var(--mut)}.tag.pend{background:rgba(255,184,0,.18);color:#ffb800}
+.acts{display:flex;gap:6px}
+.pv{border-radius:22px;padding:3px;background:linear-gradient(120deg,var(--c1),var(--c2));margin-top:10px}
+.pv>div{border-radius:19px;background:#10101a;color:#fff;text-align:center;padding:16px}.pv .w{opacity:.9;font-weight:600}.pv .s{font-size:38px;font-weight:800;line-height:1.1}.pv .mg{margin-top:4px}
+.link{display:flex;gap:8px;align-items:center;margin-top:8px}.link input{font-size:13px}
+.qr{background:#fff;padding:10px;border-radius:14px;display:inline-block}
+.auth{max-width:400px;margin:8vh auto 0}.auth h1{font-size:30px;margin:0 0 6px}.err{color:#ff6b6b;font-size:14px;min-height:20px;margin-top:8px}
+.log{font-size:13px;color:var(--mut);padding:8px 0;border-top:1px solid var(--ln);overflow-wrap:anywhere}.log:first-child{border-top:0}
+.log b{color:var(--tx)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);background:#222;color:#fff;border-radius:99px;padding:10px 18px;font-weight:700;transition:.3s;z-index:9}.toast.on{transform:translateX(-50%)}
+.ol{list-style:none;padding:0;margin:8px 0 0;counter-reset:s}.ol li{counter-increment:s;padding:6px 0 6px 34px;position:relative}.ol li:before{content:counter(s);position:absolute;left:0;top:5px;width:24px;height:24px;border-radius:50%;background:linear-gradient(130deg,var(--c1),var(--c2));color:#fff;font-weight:800;font-size:13px;display:grid;place-items:center}
+</style></head><body><div class="wrap" id="app"></div><div class="toast" id="toast"></div>
 <script>
-var T=localStorage.getItem('tk'),A=document.getElementById('a'),$=function(i){return document.getElementById(i)};
-function api(p,b){return fetch(p,{method:b?'POST':'GET',headers:{'Content-Type':'application/json','X-Token':T||''},body:b?JSON.stringify(b):undefined}).then(function(r){return r.json().then(function(j){if(!r.ok)throw j;return j})})}
+var TK='tok',tok='',M=null,ready=false,$=function(i){return document.getElementById(i)};
+try{tok=localStorage.getItem(TK)||''}catch(e){}
 function fmt(n){return Number(n).toLocaleString('ru-RU')+' ₸'}
-function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function login(){
- A.innerHTML='<h1>Донат-алерт</h1><p class="s">Уведомления о донатах Kaspi в вашем TikTok-эфире</p><div class="c"><label>Ник (для ссылки)</label><input id="sl" placeholder="aidos"><label>Пароль</label><input id="pw" type="password"><div id="rg" style="display:none"><label>Имя на странице доната</label><input id="nm"><label>Номер Kaspi для переводов</label><input id="kp" placeholder="+7 7xx xxx xx xx"></div><div class="er" id="er"></div><button class="p" id="go">Войти</button><div class="t"><button class="z" id="sw">Нет аккаунта? Регистрация</button></div></div>';
- var reg=false;$('sw').onclick=function(){reg=!reg;$('rg').style.display=reg?'block':'none';$('go').textContent=reg?'Создать аккаунт':'Войти';$('sw').textContent=reg?'Уже есть аккаунт':'Нет аккаунта? Регистрация'};
- $('go').onclick=function(){api(reg?'/api/register':'/api/login',{slug:$('sl').value,password:$('pw').value,name:reg?$('nm').value:'',kaspi:reg?$('kp').value:''}).then(function(j){T=j.token;localStorage.setItem('tk',T);panel()}).catch(function(e){$('er').textContent=e.error||'Ошибка'})}}
-function panel(){
- api('/api/me').then(function(me){
-  var base=location.origin,dl=base+'/s/'+me.slug,ol=base+'/overlay/'+me.slug+'?key='+me.okey;
-  var pend=me.donations.filter(function(d){return d.status==='pending'}),rest=me.donations.filter(function(d){return d.status!=='pending'});
-  var tot=me.donations.filter(function(d){return d.status==='confirmed'}).reduce(function(a,d){return a+d.amount},0);
-  function row(d,p){return '<div class="it"><div class="m"><b>'+esc(d.name)+'</b><div class="mu">'+esc(d.msg||'без сообщения')+'</div></div><b>'+fmt(d.amount)+'</b>'+(p?'<button class="z" data-c="'+d.id+'">Подтвердить</button><button class="z" data-x="'+d.id+'">✕</button>':(d.status==='confirmed'?'<button class="z" data-r="'+d.id+'">Ещё раз</button>':'<span class="mu">отклонён</span>'))+'</div>'}
-  A.innerHTML='<h1>'+esc(me.name)+'</h1><p class="s">Подтверждено: '+fmt(tot)+' · <a href="#" id="lo">Выйти</a></p>'
-  +'<div class="c"><b>Ждут подтверждения ('+pend.length+')</b><p class="mu">Сверьте с уведомлением Kaspi и нажмите «Подтвердить»: плашка сразу появится в эфире.</p><label class="mu"><input type="checkbox" id="tts" style="width:auto"> озвучить сообщение</label><div id="pl">'+(pend.map(function(d){return row(d,1)}).join('')||'<p class="mu">Пока никого</p>')+'</div></div>'
-  +'<div class="c"><b>Добавить вручную</b><div class="r"><input id="mn" placeholder="Имя"><input id="ma" type="number" placeholder="Сумма"></div><input id="mm" placeholder="Сообщение" style="margin-top:8px"><button class="p" id="mb" style="margin-top:10px">Показать в эфире</button></div>'
-  +'<div class="c"><b>Ссылки</b><p class="mu">Страница для зрителей (в описание профиля и в чат):</p><code>'+esc(dl)+'</code><p class="mu">Оверлей. Вставьте как «Link» в TikTok LIVE Studio или «Browser Source» в OBS. Ссылка секретная, не показывайте её в эфире:</p><code>'+esc(ol)+'</code><div class="t"><button class="z" id="ts">Тест уведомления</button></div></div>'
-  +'<div class="c"><b>Автоматически с iPhone</b><p class="mu">1. «Команды» → «Автоматизация» → «+» → «Уведомление» → выберите Kaspi.kz, «Запускать немедленно». 2. Действие «Получить содержимое URL»: URL — адрес ниже, метод POST, тело запроса JSON с полями text (Текст уведомления) и title (Название).</p><code>'+esc(base+'/api/notify?key='+me.nkey)+'</code><label class="mu"><input type="checkbox" id="au" style="width:auto"'+(me.auto?' checked':'')+'> показывать в эфире сразу, если заявки зрителя нет (иначе уйдёт в «Ждут подтверждения»)</label><p class="mu"><b>Последние уведомления с телефона</b> (хранятся 20 последних):</p>'+(me.log.map(function(l){return '<div class="it"><div class="m mu">'+esc(l.raw.slice(0,140))+'</div><b>'+esc(l.result)+'</b></div>'}).join('')||'<p class="mu">Пока ничего не приходило</p>')+'</div>'
-  +'<div class="c"><b>Настройки</b><label>Имя</label><input id="sn" value="'+esc(me.name)+'"><label>Номер Kaspi</label><input id="sk" value="'+esc(me.kaspi)+'"><button class="p" id="sb">Сохранить</button></div>'
-  +'<div class="c"><b>История</b>'+(rest.map(function(d){return row(d,0)}).join('')||'<p class="mu">Пусто</p>')+'</div>';
-  $('lo').onclick=function(e){e.preventDefault();localStorage.removeItem('tk');T=null;login()};
-  var tts=function(){return $('tts').checked},ref=function(){panel()};
-  $('pl').parentNode.onclick=function(e){var c=e.target.dataset.c,x=e.target.dataset.x;if(c)api('/api/confirm',{id:c,action:'confirm',tts:tts()}).then(ref);if(x)api('/api/confirm',{id:x,action:'reject'}).then(ref)};
-  document.querySelectorAll('[data-r]').forEach(function(b){b.onclick=function(){api('/api/replay',{id:b.dataset.r,tts:tts()})}});
-  $('mb').onclick=function(){api('/api/manual',{name:$('mn').value,amount:$('ma').value,msg:$('mm').value,tts:tts()}).then(ref).catch(function(e){alert(e.error)})};
-  $('au').onchange=function(){api('/api/settings',{name:$('sn').value,kaspi:$('sk').value,auto:$('au').checked})};
-  $('ts').onclick=function(){api('/api/test',{})};
-  $('sb').onclick=function(){api('/api/settings',{name:$('sn').value,kaspi:$('sk').value,auto:$('au').checked}).then(ref)};
- }).catch(function(){login()})}
-if(T)panel();else login();
-setInterval(function(){if(T&&document.activeElement.tagName!=='INPUT'&&$('pl'))panel()},15000);
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function toast(t){var e=$('toast');e.textContent=t;e.className='toast on';clearTimeout(toast.t);toast.t=setTimeout(function(){e.className='toast'},1800)}
+function api(p,b){var o={method:b?'POST':'GET',headers:{'x-token':tok}};if(b){o.headers['Content-Type']='application/json';o.body=JSON.stringify(b)}
+ return fetch(p,o).then(function(r){return r.json().then(function(j){if(r.status===401&&tok){setTok('');location.reload()}if(j.error&&r.status!==401)throw new Error(j.error);return j})})}
+function setTok(t){tok=t;try{localStorage.setItem(TK,t)}catch(e){}}
+function copy(t){try{navigator.clipboard.writeText(t)}catch(e){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}toast('Скопировано')}
+/* ---------- вход ---------- */
+function authView(){
+ $('app').innerHTML='<div class="auth"><div class="logo" style="margin-bottom:18px"><i></i>Донат-алерт</div><h1>Донаты в эфире за минуту</h1><p class="hint" style="font-size:15px">Kaspi-переводы появляются плашкой на стриме. Бесплатно.</p>'
+ +'<div class="card" style="margin-top:20px"><div class="tabs" style="padding:0 0 8px"><button class="tab on" id="tl">Вход</button><button class="tab" id="tr">Регистрация</button></div>'
+ +'<label>Ник (латиница)</label><input type="text" id="sl" autocapitalize="none" autocomplete="username"><div id="rg" style="display:none"><label>Имя на странице</label><input type="text" id="nm"><label>Номер Kaspi</label><input type="text" id="kp" placeholder="+7 7xx xxx xx xx"></div>'
+ +'<label>Пароль</label><input type="password" id="pw" autocomplete="current-password"><button class="b p" id="go" style="width:100%;margin-top:16px;padding:13px">Войти</button><div class="err" id="er"></div></div></div>';
+ var reg=false;$('tl').onclick=function(){reg=false;$('tl').className='tab on';$('tr').className='tab';$('rg').style.display='none';$('go').textContent='Войти'};
+ $('tr').onclick=function(){reg=true;$('tr').className='tab on';$('tl').className='tab';$('rg').style.display='block';$('go').textContent='Создать аккаунт'};
+ $('go').onclick=function(){$('er').textContent='';api(reg?'/api/register':'/api/login',{slug:$('sl').value,password:$('pw').value,name:reg?$('nm').value:'',kaspi:reg?$('kp').value:''}).then(function(j){setTok(j.token);location.reload()}).catch(function(e){$('er').textContent=e.message})}}
+/* ---------- панель ---------- */
+var TABS=[['d','Донаты'],['o','Оформление'],['g','Цель и топ'],['c','Подключение'],['s','Безопасность']];
+function origin(){return location.origin}
+function ovLink(w){return origin()+'/overlay/'+M.slug+'?key='+M.okey+(w?'&w='+w:'')}
+function build(){
+ var h='<div class="top"><div class="logo"><i></i>Донат-алерт</div><button class="b s" id="out">Выйти</button></div><div class="tabs">';
+ TABS.forEach(function(t,i){h+='<button class="tab'+(i?'':' on')+'" data-t="'+t[0]+'">'+t[1]+'</button>'});
+ h+='</div>';
+ /* donations */
+ h+='<div class="pane on" id="p-d"><div class="stats"><div class="st"><small>Сегодня</small><b id="s1"></b></div><div class="st"><small>Неделя</small><b id="s2"></b></div><div class="st"><small>Всего</small><b id="s3"></b></div><div class="st"><small>Донатов</small><b id="s4"></b></div></div>'
+ +'<div class="card"><h3>Ручной донат</h3><div class="g2"><div><label>Имя</label><input type="text" id="mn" maxlength="40"></div><div><label>Сумма, ₸</label><input type="number" id="ma" inputmode="numeric"></div></div><label>Сообщение</label><input type="text" id="mm" maxlength="200"><div class="row"><button class="b p" id="mg">Показать в эфире</button><button class="b" id="tst">Тест плашки</button></div></div>'
+ +'<div class="card"><h3>Ожидают подтверждения</h3><div id="pend"><p class="hint">Нет</p></div></div>'
+ +'<div class="card"><h3>История</h3><div id="hist"><p class="hint">Пока пусто</p></div></div></div>';
+ /* design */
+ h+='<div class="pane" id="p-o"><div class="card"><h3>Оформление плашки</h3><div class="pv"><div><div class="w" id="pw1">Айдос задонатил(а)</div><div class="s" id="ps">1 000 ₸</div><div class="mg">Привет, стример!</div></div></div>'
+ +'<div class="g2"><div><label>Цвет 1</label><input type="color" id="c1"></div><div><label>Цвет 2</label><input type="color" id="c2"></div></div>'
+ +'<div class="g3"><div><label>Шрифт</label><select id="font"><option>Rubik</option><option>Montserrat</option><option>Manrope</option><option>Russo One</option><option>Comfortaa</option></select></div>'
+ +'<div><label>Позиция</label><select id="pos"><option value="bottom">Снизу</option><option value="center">По центру</option><option value="top">Сверху</option></select></div>'
+ +'<div><label>Показ, сек</label><input type="number" id="dur" min="3" max="30"></div></div>'
+ +'<div class="g2"><div><label>Звук</label><select id="sound"><option value="chime">Мелодия</option><option value="bell">Колокольчик</option><option value="coin">Монета</option><option value="none">Без звука</option></select></div><div><label>Громкость: <span id="vv"></span>%</label><input type="range" id="vol" min="0" max="100"></div></div>'
+ +'<div class="row"><button class="b" id="snd">▶ Прослушать</button><button class="b" id="tst2">Тест в эфире</button></div></div>'
+ +'<div class="card"><h3>Фильтры и озвучка</h3><div class="g2"><div><label>Минимальная сумма, ₸</label><input type="number" id="min" min="0"></div><div><label>Озвучка от суммы, ₸</label><input type="number" id="ttsMin" min="0"></div></div>'
+ +'<label class="chk"><input type="checkbox" id="tts">Озвучивать сообщения</label>'
+ +'<label>Запрещённые слова (через запятую) — заменяются на ***</label><textarea id="bad"></textarea>'
+ +'<label>Чёрный список имён (через запятую) — такие донаты не показываются</label><textarea id="block"></textarea></div>'
+ +'<button class="b p" id="sv1" style="width:100%;padding:14px">Сохранить</button></div>';
+ /* goal */
+ h+='<div class="pane" id="p-g"><div class="card"><h3>Цель сбора</h3><label class="chk"><input type="checkbox" id="goalOn">Показывать цель</label><label>Название</label><input type="text" id="goalTitle" maxlength="60" placeholder="Например, на новый микрофон"><label>Сумма цели, ₸</label><input type="number" id="goalTarget" min="0">'
+ +'<div class="row"><button class="b p" id="sv2">Сохранить</button><button class="b d" id="gr">Сбросить прогресс</button></div></div>'
+ +'<div class="card"><h3>Виджеты в эфир</h3><p class="hint">Добавьте как отдельные источники-ссылки. Топ и цель обновляются сами.</p>'
+ +'<label>Цель</label><div class="link"><input type="text" id="lg" readonly><button class="b s" data-cp="lg">Копировать</button></div><label>Топ донатеров</label><div class="link"><input type="text" id="lt" readonly><button class="b s" data-cp="lt">Копировать</button></div></div></div>';
+ /* connect */
+ h+='<div class="pane" id="p-c"><div class="card"><h3>Ваш профиль</h3><label>Имя</label><input type="text" id="pn" maxlength="40"><label>Номер Kaspi (показывается зрителям)</label><input type="text" id="pk" maxlength="60"><button class="b p" id="sv3" style="margin-top:14px">Сохранить</button></div>'
+ +'<div class="card"><h3>Оверлей для эфира</h3><p class="hint">Секретная ссылка — не показывайте её на стриме и в скриншотах.</p><label>Плашки донатов</label><div class="link"><input type="text" id="lo" readonly><button class="b s" data-cp="lo">Копировать</button></div><div class="row"><button class="b" id="opn">Открыть</button></div></div>'
+ +'<div class="card"><h3>Страница для зрителей</h3><div class="link"><input type="text" id="lv" readonly><button class="b s" data-cp="lv">Копировать</button></div><div class="row" style="align-items:flex-start"><div class="qr" id="qr"></div><p class="hint" style="flex:1;min-width:150px">QR-код: покажите в эфире или вставьте в описание — зритель сразу попадёт на страницу доната.</p></div></div>'
+ +'<div class="card"><h3>Автоматика с iPhone / iPad</h3><label class="chk"><input type="checkbox" id="auto">Показывать донаты сразу, без подтверждения</label>'
+ +'<ol class="ol"><li>Команды → Автоматизация → Уведомление → приложение Kaspi.kz, «Выполнять сразу».</li><li>Действие «Получить содержимое URL», метод POST, JSON.</li><li>Поля: text — Текст, title — Название, app — Приложение (из «Уведомления»).</li><li>Настройки → Уведомления → Показ миниатюр → «Всегда».</li></ol>'
+ +'<label>Адрес для команды</label><div class="link"><input type="text" id="ln" readonly><button class="b s" data-cp="ln">Копировать</button></div>'
+ +'<h3 style="margin-top:18px">Последние уведомления</h3><div id="log"><p class="hint">Пока ничего</p></div></div></div>';
+ /* security */
+ h+='<div class="pane" id="p-s"><div class="card"><h3>Ключи</h3><p class="hint">Если ссылка оверлея или адрес уведомлений попали не в те руки — обновите ключ. Старая ссылка перестанет работать.</p>'
+ +'<div class="row"><button class="b d" id="ro">Обновить ключ оверлея</button><button class="b d" id="rn">Обновить ключ уведомлений</button></div></div>'
+ +'<div class="card"><h3>Смена пароля</h3><label>Текущий пароль</label><input type="password" id="op"><label>Новый пароль (от 6 символов)</label><input type="password" id="np"><button class="b p" id="cpw" style="margin-top:14px">Сменить пароль</button><div class="err" id="pe"></div></div></div>';
+ $('app').innerHTML=h;
+ document.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===b)});document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('on',p.id==='p-'+b.getAttribute('data-t'))})}});
+ document.querySelectorAll('[data-cp]').forEach(function(b){b.onclick=function(){copy($(b.getAttribute('data-cp')).value)}});
+ $('out').onclick=function(){setTok('');location.reload()};
+ fill();bind();
+}
+function cfgVal(){var c={};['c1','c2','font','pos','sound','goalTitle'].forEach(function(k){c[k]=$(k).value});
+ ['dur','vol','min','ttsMin','goalTarget'].forEach(function(k){c[k]=Number($(k).value)||0});['tts','goalOn'].forEach(function(k){c[k]=$(k).checked});c.bad=$('bad').value;c.block=$('block').value;return c}
+function fill(){var c=M.cfg;['c1','c2','font','pos','sound','goalTitle','dur','vol','min','ttsMin','goalTarget','bad','block'].forEach(function(k){$(k).value=c[k]});
+ $('tts').checked=c.tts;$('goalOn').checked=c.goalOn;$('pn').value=M.name||'';$('pk').value=M.kaspi||'';$('auto').checked=M.auto;
+ $('lg').value=ovLink('goal');$('lt').value=ovLink('top');$('lo').value=ovLink();$('lv').value=origin()+'/s/'+M.slug;
+ $('ln').value=origin()+'/api/notify?key='+M.nkey;$('qr').innerHTML='';try{new QRCode($('qr'),{text:$('lv').value,width:132,height:132,correctLevel:QRCode.CorrectLevel.M})}catch(e){}pv()}
+function pv(){var c={c1:$('c1').value,c2:$('c2').value};var r=document.documentElement.style;r.setProperty('--c1',c.c1);r.setProperty('--c2',c.c2);
+ document.querySelector('.pv').style.fontFamily="'"+$('font').value+"',sans-serif";$('vv').textContent=$('vol').value}
+/* sound */
+var ac;function tone(f,t0,len,v,ty){var o=ac.createOscillator(),g=ac.createGain();o.type=ty||'sine';o.frequency.value=f;var t=ac.currentTime+t0;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.001,v),t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+len);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+len+.05)}
+function play(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume()}catch(e){return}var k=$('sound').value,v=$('vol').value/100*.35;if(k==='none')return;
+ if(k==='bell'){tone(880,0,1.1,v,'triangle');tone(1320,.02,.9,v*.6);tone(1760,.04,.7,v*.3)}else if(k==='coin'){tone(988,0,.12,v,'square');tone(1319,.1,.45,v,'square')}else[660,880,1320].forEach(function(f,i){tone(f,i*.12,.5,v)})}
+function saveAll(extra){var b={cfg:cfgVal(),name:$('pn').value,kaspi:$('pk').value,auto:$('auto').checked};return api('/api/settings',b).then(function(j){M.cfg=j.cfg;M.name=$('pn').value;M.kaspi=$('pk').value;toast('Сохранено')}).catch(function(e){toast(e.message)})}
+function bind(){
+ ['c1','c2','font','vol'].forEach(function(k){$(k).oninput=pv});$('snd').onclick=play;
+ ['sv1','sv2','sv3'].forEach(function(i){$(i).onclick=saveAll});
+ $('auto').onchange=saveAll;
+ $('tst').onclick=$('tst2').onclick=function(){saveAll().then(function(){return api('/api/test',{})})};
+ $('mg').onclick=function(){var a=Number($('ma').value);if(!(a>0)){$('ma').focus();return}api('/api/manual',{name:$('mn').value,amount:a,msg:$('mm').value}).then(function(){$('mn').value=$('ma').value=$('mm').value='';toast('Показано');load()}).catch(function(e){toast(e.message)})};
+ $('gr').onclick=function(){if(confirm('Сбросить прогресс цели?'))api('/api/goal/reset',{}).then(function(){toast('Сброшено')})};
+ $('opn').onclick=function(){window.open($('lo').value,'_blank')};
+ $('ro').onclick=function(){if(confirm('Старая ссылка оверлея перестанет работать. Продолжить?'))api('/api/rotate',{which:'overlay'}).then(function(j){M.okey=j.okey;fill();toast('Новая ссылка готова — обновите источник в эфире')})};
+ $('rn').onclick=function(){if(confirm('Нужно будет обновить адрес в Командах на iPhone. Продолжить?'))api('/api/rotate',{which:'notify'}).then(function(j){M.nkey=j.nkey;fill();toast('Новый адрес — обновите команду')})};
+ $('cpw').onclick=function(){$('pe').textContent='';api('/api/password',{old:$('op').value,new:$('np').value}).then(function(j){setTok(j.token);$('op').value=$('np').value='';toast('Пароль изменён')}).catch(function(e){$('pe').textContent=e.message})};
+ $('hist').onclick=$('pend').onclick=function(e){var b=e.target.closest('[data-a]');if(!b)return;var id=b.getAttribute('data-id'),a=b.getAttribute('data-a');
+  var p=a==='del'?api('/api/delete',{id:id}):a==='re'?api('/api/replay',{id:id}):api('/api/confirm',{id:id,action:a});p.then(load).catch(function(e){toast(e.message)})};
+}
+function item(d,pend){var t=pend?'<span class="tag pend">ждёт</span>':'';
+ return '<div class="it"><div class="m"><div class="n">'+esc(d.name)+t+'</div><div class="t">'+esc(d.msg||'без сообщения')+'</div></div><div class="a">'+fmt(d.amount)+'</div><div class="acts">'
+ +(pend?'<button class="b s p" data-a="confirm" data-id="'+d.id+'">Показать</button><button class="b s" data-a="reject" data-id="'+d.id+'">✕</button>'
+ :'<button class="b s" data-a="re" data-id="'+d.id+'">Ещё раз</button><button class="b s d" data-a="del" data-id="'+d.id+'">✕</button>')+'</div></div>'}
+function paint(){var s=M.stats;$('s1').textContent=fmt(s.today);$('s2').textContent=fmt(s.week);$('s3').textContent=fmt(s.total);$('s4').textContent=s.count;
+ var p=M.donations.filter(function(d){return d.status==='pending'}),h=M.donations.filter(function(d){return d.status==='confirmed'}).slice(0,40);
+ $('pend').innerHTML=p.length?p.map(function(d){return item(d,1)}).join(''):'<p class="hint">Нет</p>';
+ $('hist').innerHTML=h.length?h.map(function(d){return item(d)}).join(''):'<p class="hint">Пока пусто</p>';
+ $('log').innerHTML=M.log.length?M.log.map(function(l){return '<div class="log"><b>'+new Date(l.ts).toLocaleTimeString('ru-RU')+'</b> · '+esc(l.result)+' · '+fmt(l.amount)+' · '+esc(l.name||'—')+'<br>'+esc(l.raw)+'</div>'}).join(''):'<p class="hint">Пока ничего</p>'}
+function load(){return api('/api/me').then(function(j){var first=!M;M=j;if(first)build();else{M.cfg=M.cfg;}paint()}).catch(function(){})}
+if(tok)load().then(function(){setInterval(load,12000)});else authView();
 </script></body></html>
