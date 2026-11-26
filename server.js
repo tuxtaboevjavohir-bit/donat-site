@@ -32,7 +32,7 @@ setInterval(()=>{const n=Math.floor(Date.now()/60000)-2;for(const k in hits)if(+
 const body=req=>new Promise(ok=>{let b='';req.on('data',c=>{b+=c;if(b.length>1e5)req.destroy()});req.on('end',()=>{try{ok(JSON.parse(b||'{}'))}catch(e){ok({})}})});
 const send=(res,c,o)=>{res.writeHead(c,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(o))};
 const auth=req=>{const t=req.headers['x-token'];return t&&Object.values(db.streamers).find(s=>s.token===t)};
-const page=(res,f)=>fs.readFile(path.join(__dirname,f),(e,d)=>{if(e){res.writeHead(404);return res.end('404')}res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(d)});
+const page=(res,f)=>fs.readFile(path.join(__dirname,f),(e,d)=>{if(e){res.writeHead(404);return res.end('404')}res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Access-Control-Allow-Origin':'*'});res.end(d)});
 const push=(slug,d)=>(clients[slug]||new Set()).forEach(r=>r.write('data: '+JSON.stringify(d)+'\n\n'));
 function mk(slug,name,amount,msg,status,src){
   const d={id:rnd(6),slug,name:str(name,40)||'Аноним',amount:Math.floor(+amount),msg:str(msg,200),status,ts:Date.now()};
@@ -87,14 +87,15 @@ const view=s=>({slug:s.slug,name:s.name,kaspi:s.kaspi,okey:s.okey,nkey:s.nkey,au
 http.createServer(async(req,res)=>{
   const u=new URL(req.url,'http://x'),p=u.pathname,ip=(req.headers['x-forwarded-for']||req.socket.remoteAddress||'').split(',')[0];
   let m;
+  if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, HEAD, OPTIONS','Access-Control-Allow-Headers':'*','Access-Control-Max-Age':'86400'});return res.end()}
   if(req.method==='HEAD')req.method='GET';
   if(req.method==='GET'){
     if(p==='/')return page(res,'index.html');
     if(/^\/s\/[a-z0-9_]+$/.test(p))return page(res,'donate.html');
     if(/^\/overlay\/[a-z0-9_]+$/.test(p))return page(res,'overlay.html');
     if(/^\/o\/[a-z0-9_]+\/[a-f0-9]+(\/(alert|goal|top))?$/.test(p))return page(res,'overlay.html');
-    if(p==='/alert'){const k=u.searchParams.get('token')||u.searchParams.get('key')||'',w=u.searchParams.get('w');const t=Object.values(db.streamers).find(x=>x.okey&&x.okey===k);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{Location:'/o/'+t.slug+'/'+t.okey+(/^(goal|top)$/.test(w)?'/'+w:'')});return res.end()}
-    if(m=p.match(/^\/w\/([a-f0-9]+)(?:\/(alert|goal|top))?$/)){const t=Object.values(db.streamers).find(x=>x.okey===m[1]);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{Location:'/o/'+t.slug+'/'+t.okey+(m[2]?'/'+m[2]:'')});return res.end()}
+    if(p==='/alert'){const k=u.searchParams.get('token')||u.searchParams.get('key')||'',w=u.searchParams.get('w');const t=Object.values(db.streamers).find(x=>x.okey&&x.okey===k);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{'Access-Control-Allow-Origin':'*',Location:'/o/'+t.slug+'/'+t.okey+(/^(goal|top)$/.test(w)?'/'+w:'')});return res.end()}
+    if(m=p.match(/^\/w\/([a-f0-9]+)(?:\/(alert|goal|top))?$/)){const t=Object.values(db.streamers).find(x=>x.okey===m[1]);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{'Access-Control-Allow-Origin':'*',Location:'/o/'+t.slug+'/'+t.okey+(m[2]?'/'+m[2]:'')});return res.end()}
     if(p==='/api/notify'){if(limited(ip,60))return send(res,429,{error:'limit'});const r=notify(Object.fromEntries(u.searchParams));return send(res,r[0],r[1])}
     if(m=p.match(/^\/api\/streamer\/([a-z0-9_]+)$/)){const s=db.streamers[m[1]];if(!s)return send(res,404,{error:'Не найден'});const w=widget(s);return send(res,200,{name:s.name,kaspi:s.kaspi,goal:w.goal,top:w.top,style:w.style})}
     if(p==='/api/me'){const s=auth(req);if(!s)return send(res,401,{error:'auth'});if(!s.nkey){s.nkey=rnd(10);save()}return send(res,200,view(s))}
