@@ -31,7 +31,8 @@
 </style></head><body>
 <div id="st" class="bottom"></div><div id="wg" class="wrap" style="display:none"></div>
 <script>
-var parts=location.pathname.split('/'),slug=parts[2],qs=new URLSearchParams(location.search),key=qs.get('key')||'',W=qs.get('w')||'alert';
+var parts=location.pathname.split('/'),qs=new URLSearchParams(location.search),slug=parts[2],key=qs.get('key')||'',W=qs.get('w')||'alert';
+if(parts[1]==='o'){key=parts[3]||'';W=parts[4]||'alert'}
 var st=document.getElementById('st'),wg=document.getElementById('wg'),q=[],busy=false,ac=null,loadedFont='';
 function fmt(n){return Number(n).toLocaleString('ru-RU')+' ₸'}
 function style(s){if(!s)return;var r=document.documentElement.style;r.setProperty('--c1',s.c1);r.setProperty('--c2',s.c2);r.setProperty('--f',"'"+s.font+"',system-ui,sans-serif");

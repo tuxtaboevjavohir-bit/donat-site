@@ -66,7 +66,7 @@ function authView(){
 /* ---------- панель ---------- */
 var TABS=[['d','Донаты'],['o','Оформление'],['g','Цель и топ'],['c','Подключение'],['s','Безопасность']];
 function origin(){return location.origin}
-function ovLink(w){return origin()+'/overlay/'+M.slug+'?key='+M.okey+(w?'&w='+w:'')}
+function ovLink(w){return origin()+'/o/'+M.slug+'/'+M.okey+(w?'/'+w:'')}
 function build(){
  var h='<div class="top"><div class="logo"><i></i>Донат-алерт</div><button class="b s" id="out">Выйти</button></div><div class="tabs">';
  TABS.forEach(function(t,i){h+='<button class="tab'+(i?'':' on')+'" data-t="'+t[0]+'">'+t[1]+'</button>'});
