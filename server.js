@@ -31,14 +31,17 @@ function notify(q){
   const a=am?Math.floor(Number(am[1].replace(/ /g,'').replace(',','.'))):0;
   const incoming=/перевел|перевод|поступил|пополн|получил|\+\s*\d/i.test(raw.replace(/ё/g,'е'))&&!/оплат|покупк|списан|снят|платеж/i.test(raw);
   const rn=raw.replace(/ё/g,'е').replace(/Ё/g,'Е');
-  const nm=rn.match(/(?:^|[^а-яеa-z])от\s+([^\s,.:;]+(?:\s+[^\s,.:;]{1,2}\.?)?)/i)||rn.match(/(?:^|\s)([А-ЯA-Z][^\s,.:;]+(?:\s+[А-ЯA-Z]\.?)?)\s+перевел/);
-  const name=nm?nm[1]:'';
+  let name='',cmt='';
+  const pm=raw.match(/Пополнение:\s*[\d\s.,]+\s*(?:₸|тг|тенге)\s*(.*)$/i);
+  if(pm&&pm[1]){const k=pm[1].indexOf(':');if(k>=0){name=pm[1].slice(0,k).trim();cmt=pm[1].slice(k+1).trim()}else name=pm[1].trim()}
+  if(!name){const nm=rn.match(/(?:^|[^а-яеa-z])от\s+([^\s,.:;]+(?:\s+[^\s,.:;]{1,2}\.?)?)/i)||rn.match(/(?:^|\s)([А-ЯA-Z][^\s,.:;]+(?:\s+[А-ЯA-Z]\.?)?)\s+перевел/);name=nm?nm[1]:''}
+  name=str(name,40);cmt=str(cmt,200);
   let result='ignored';
   if(incoming&&a>0){
     const d=db.donations.filter(x=>x.slug===s.slug&&x.status==='pending'&&x.amount===a&&x.ts>Date.now()-3600000).sort((x,y)=>x.ts-y.ts)[0];
     if(d){d.status='confirmed';push(s.slug,alertOf(d));result='matched'}
-    else if(s.auto){push(s.slug,alertOf(mk(s.slug,name,a,'','confirmed')));result='auto'}
-    else{mk(s.slug,name||'Kaspi',a,'из уведомления Kaspi','pending');result='pending'}
+    else if(s.auto){push(s.slug,alertOf(mk(s.slug,name,a,cmt,'confirmed')));result='auto'}
+    else{mk(s.slug,name||'Kaspi',a,cmt||'из уведомления Kaspi','pending');result='pending'}
   }
   s.log.unshift({ts:Date.now(),raw,amount:a,name,result});s.log.length=Math.min(s.log.length,20);save();
   return [200,{ok:1,result}]}
