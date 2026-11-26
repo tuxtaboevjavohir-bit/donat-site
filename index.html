@@ -66,7 +66,7 @@ function authView(){
 /* ---------- панель ---------- */
 var TABS=[['d','Донаты'],['o','Оформление'],['g','Цель и топ'],['c','Подключение'],['s','Безопасность']];
 function origin(){return location.origin}
-function ovLink(w){return origin()+'/w/'+M.okey+(w?'/'+w:'')}
+function ovLink(w){return origin()+'/alert?token='+M.okey+(w?'&w='+w:'')}
 function build(){
  var h='<div class="top"><div class="logo"><i></i>Донат-алерт</div><button class="b s" id="out">Выйти</button></div><div class="tabs">';
  TABS.forEach(function(t,i){h+='<button class="tab'+(i?'':' on')+'" data-t="'+t[0]+'">'+t[1]+'</button>'});
@@ -96,7 +96,7 @@ function build(){
  +'<label>Цель</label><div class="link"><input type="text" id="lg" readonly><button class="b s" data-cp="lg">Копировать</button></div><label>Топ донатеров</label><div class="link"><input type="text" id="lt" readonly><button class="b s" data-cp="lt">Копировать</button></div></div></div>';
  /* connect */
  h+='<div class="pane" id="p-c"><div class="card"><h3>Ваш профиль</h3><label>Имя</label><input type="text" id="pn" maxlength="40"><label>Номер Kaspi (показывается зрителям)</label><input type="text" id="pk" maxlength="60"><button class="b p" id="sv3" style="margin-top:14px">Сохранить</button></div>'
- +'<div class="card"><h3>Оверлей для эфира</h3><p class="hint">Секретная ссылка — не показывайте её на стриме и в скриншотах.</p><label>Плашки донатов</label><div class="link"><input type="text" id="lo" readonly><button class="b s" data-cp="lo">Копировать</button></div><div class="row"><button class="b" id="opn">Открыть</button></div></div>'
+ +'<div class="card"><h3>Оверлей для эфира</h3><p class="hint">Секретная ссылка — не показывайте её на стриме и в скриншотах.</p><label>Плашки донатов</label><div class="link"><input type="text" id="lo" readonly><button class="b s" data-cp="lo">Копировать</button></div><label>Запасная короткая ссылка</label><div class="link"><input type="text" id="ls" readonly><button class="b s" data-cp="ls">Копировать</button></div><div class="row"><button class="b" id="opn">Открыть</button></div></div>'
  +'<div class="card"><h3>Страница для зрителей</h3><div class="link"><input type="text" id="lv" readonly><button class="b s" data-cp="lv">Копировать</button></div><div class="row" style="align-items:flex-start"><div class="qr" id="qr"></div><p class="hint" style="flex:1;min-width:150px">QR-код: покажите в эфире или вставьте в описание — зритель сразу попадёт на страницу доната.</p></div></div>'
  +'<div class="card"><h3>Автоматика с iPhone / iPad</h3><label class="chk"><input type="checkbox" id="auto">Показывать донаты сразу, без подтверждения</label>'
  +'<ol class="ol"><li>Команды → Автоматизация → Уведомление → приложение Kaspi.kz, «Выполнять сразу».</li><li>Действие «Получить содержимое URL», метод POST, JSON.</li><li>Поля: text — Текст, title — Название, app — Приложение (из «Уведомления»).</li><li>Настройки → Уведомления → Показ миниатюр → «Всегда».</li></ol>'
@@ -116,7 +116,7 @@ function cfgVal(){var c={};['c1','c2','font','pos','sound','goalTitle'].forEach(
  ['dur','vol','min','ttsMin','goalTarget'].forEach(function(k){c[k]=Number($(k).value)||0});['tts','goalOn'].forEach(function(k){c[k]=$(k).checked});c.bad=$('bad').value;c.block=$('block').value;return c}
 function fill(){var c=M.cfg;['c1','c2','font','pos','sound','goalTitle','dur','vol','min','ttsMin','goalTarget','bad','block'].forEach(function(k){$(k).value=c[k]});
  $('tts').checked=c.tts;$('goalOn').checked=c.goalOn;$('pn').value=M.name||'';$('pk').value=M.kaspi||'';$('auto').checked=M.auto;
- $('lg').value=ovLink('goal');$('lt').value=ovLink('top');$('lo').value=ovLink();$('lv').value=origin()+'/s/'+M.slug;
+ $('lg').value=ovLink('goal');$('lt').value=ovLink('top');$('lo').value=ovLink();$('ls').value=origin()+'/w/'+M.okey;$('lv').value=origin()+'/s/'+M.slug;
  $('ln').value=origin()+'/api/notify?key='+M.nkey;$('qr').innerHTML='';try{new QRCode($('qr'),{text:$('lv').value,width:132,height:132,correctLevel:QRCode.CorrectLevel.M})}catch(e){}pv()}
 function pv(){var c={c1:$('c1').value,c2:$('c2').value};var r=document.documentElement.style;r.setProperty('--c1',c.c1);r.setProperty('--c2',c.c2);
  document.querySelector('.pv').style.fontFamily="'"+$('font').value+"',sans-serif";$('vv').textContent=$('vol').value}
