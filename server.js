@@ -11,7 +11,7 @@ setInterval(()=>{for(const k in hits)if(+k.split(':').pop()<Math.floor(Date.now(
 const body=req=>new Promise(ok=>{let b='';req.on('data',c=>{b+=c;if(b.length>1e5)req.destroy()});req.on('end',()=>{try{ok(JSON.parse(b||'{}'))}catch(e){ok({})}})});
 const send=(res,c,o)=>{res.writeHead(c,{'Content-Type':'application/json'});res.end(JSON.stringify(o))};
 const auth=req=>{const t=req.headers['x-token'];return t&&Object.values(db.streamers).find(s=>s.token===t)};
-const page=(res,f)=>fs.readFile(path.join(__dirname,'public',f),(e,d)=>{if(e){res.writeHead(404);return res.end('404')}res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(d)});
+const page=(res,f)=>fs.readFile(path.join(__dirname,f),(e,d)=>{if(e){res.writeHead(404);return res.end('404')}res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(d)});
 const str=(v,n)=>String(v==null?'':v).trim().slice(0,n);
 function push(slug,d){(clients[slug]||new Set()).forEach(r=>r.write('data: '+JSON.stringify(d)+'\n\n'))}
 function mk(slug,name,amount,msg,status){
