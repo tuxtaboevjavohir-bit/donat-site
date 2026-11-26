@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>Оверлей</title>
+<style>html,body{margin:0;height:100%;background:transparent;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#st{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:0 16px 40px}
+.al{background:linear-gradient(135deg,#e8333c,#ff7a45);color:#fff;border-radius:20px;padding:18px 26px;max-width:560px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35);transform:translateY(40px) scale(.9);opacity:0;transition:all .45s cubic-bezier(.2,1.4,.4,1)}
+.al.in{transform:none;opacity:1}.w{font-size:28px;font-weight:800}.s{font-size:40px;font-weight:900;margin:2px 0}.m{font-size:22px;overflow-wrap:anywhere}</style></head>
+<body><div id="st"></div>
+<script>
+var slug=location.pathname.split('/')[2],key=new URLSearchParams(location.search).get('key')||'',st=document.getElementById('st'),q=[],busy=false,ac=null;
+function ctx(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}return ac}
+function chime(){var a=ctx();if(!a)return;[660,880,1320].forEach(function(f,i){var o=a.createOscillator(),g=a.createGain(),t=a.currentTime+i*.12;o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.25,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+.5);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+.55)})}
+function next(){if(busy||!q.length)return;busy=true;var v=q.shift(),e=document.createElement('div');e.className='al';e.innerHTML='<div class="w"></div><div class="s"></div><div class="m"></div>';
+ e.children[0].textContent=v.name+' задонатил(а)';e.children[1].textContent=Number(v.amount).toLocaleString('ru-RU')+' ₸';e.children[2].textContent=v.msg||'';
+ st.innerHTML='';st.appendChild(e);requestAnimationFrame(function(){requestAnimationFrame(function(){e.classList.add('in')})});chime();
+ if(v.tts&&v.msg&&window.speechSynthesis){var u=new SpeechSynthesisUtterance(v.name+' пишет: '+v.msg);u.lang='ru-RU';speechSynthesis.speak(u)}
+ setTimeout(function(){e.classList.remove('in');setTimeout(function(){st.innerHTML='';busy=false;next()},500)},(v.dur||8)*1000)}
+function open(){var es=new EventSource('/api/stream/'+slug+'?key='+encodeURIComponent(key));es.onmessage=function(m){try{q.push(JSON.parse(m.data));next()}catch(e){}};es.onerror=function(){es.close();setTimeout(open,3000)}}
+document.addEventListener('click',ctx);open();
+</script></body></html>
