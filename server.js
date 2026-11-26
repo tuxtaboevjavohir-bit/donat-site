@@ -87,6 +87,7 @@ const view=s=>({slug:s.slug,name:s.name,kaspi:s.kaspi,okey:s.okey,nkey:s.nkey,au
 http.createServer(async(req,res)=>{
   const u=new URL(req.url,'http://x'),p=u.pathname,ip=(req.headers['x-forwarded-for']||req.socket.remoteAddress||'').split(',')[0];
   let m;
+  if(req.method==='HEAD')req.method='GET';
   if(req.method==='GET'){
     if(p==='/')return page(res,'index.html');
     if(/^\/s\/[a-z0-9_]+$/.test(p))return page(res,'donate.html');
