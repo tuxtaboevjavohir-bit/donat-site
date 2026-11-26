@@ -18,6 +18,7 @@ function panel(){
   +'<div class="c"><b>Ждут подтверждения ('+pend.length+')</b><p class="mu">Сверьте с уведомлением Kaspi и нажмите «Подтвердить»: плашка сразу появится в эфире.</p><label class="mu"><input type="checkbox" id="tts" style="width:auto"> озвучить сообщение</label><div id="pl">'+(pend.map(function(d){return row(d,1)}).join('')||'<p class="mu">Пока никого</p>')+'</div></div>'
   +'<div class="c"><b>Добавить вручную</b><div class="r"><input id="mn" placeholder="Имя"><input id="ma" type="number" placeholder="Сумма"></div><input id="mm" placeholder="Сообщение" style="margin-top:8px"><button class="p" id="mb" style="margin-top:10px">Показать в эфире</button></div>'
   +'<div class="c"><b>Ссылки</b><p class="mu">Страница для зрителей (в описание профиля и в чат):</p><code>'+esc(dl)+'</code><p class="mu">Оверлей. Вставьте как «Link» в TikTok LIVE Studio или «Browser Source» в OBS. Ссылка секретная, не показывайте её в эфире:</p><code>'+esc(ol)+'</code><div class="t"><button class="z" id="ts">Тест уведомления</button></div></div>'
+  +'<div class="c"><b>Автоматически с iPhone</b><p class="mu">1. «Команды» → «Автоматизация» → «+» → «Уведомление» → выберите Kaspi.kz, «Запускать немедленно». 2. Действие «Получить содержимое URL»: URL — адрес ниже, метод POST, тело запроса JSON с полями text (Текст уведомления) и title (Название).</p><code>'+esc(base+'/api/notify?key='+me.nkey)+'</code><label class="mu"><input type="checkbox" id="au" style="width:auto"'+(me.auto?' checked':'')+'> показывать в эфире сразу, если заявки зрителя нет (иначе уйдёт в «Ждут подтверждения»)</label><p class="mu"><b>Последние уведомления с телефона</b> (хранятся 20 последних):</p>'+(me.log.map(function(l){return '<div class="it"><div class="m mu">'+esc(l.raw.slice(0,140))+'</div><b>'+esc(l.result)+'</b></div>'}).join('')||'<p class="mu">Пока ничего не приходило</p>')+'</div>'
   +'<div class="c"><b>Настройки</b><label>Имя</label><input id="sn" value="'+esc(me.name)+'"><label>Номер Kaspi</label><input id="sk" value="'+esc(me.kaspi)+'"><button class="p" id="sb">Сохранить</button></div>'
   +'<div class="c"><b>История</b>'+(rest.map(function(d){return row(d,0)}).join('')||'<p class="mu">Пусто</p>')+'</div>';
   $('lo').onclick=function(e){e.preventDefault();localStorage.removeItem('tk');T=null;login()};
@@ -26,7 +27,7 @@ function panel(){
   document.querySelectorAll('[data-r]').forEach(function(b){b.onclick=function(){api('/api/replay',{id:b.dataset.r,tts:tts()})}});
   $('mb').onclick=function(){api('/api/manual',{name:$('mn').value,amount:$('ma').value,msg:$('mm').value,tts:tts()}).then(ref).catch(function(e){alert(e.error)})};
   $('ts').onclick=function(){api('/api/test',{})};
-  $('sb').onclick=function(){api('/api/settings',{name:$('sn').value,kaspi:$('sk').value}).then(ref)};
+  $('sb').onclick=function(){api('/api/settings',{name:$('sn').value,kaspi:$('sk').value,auto:$('au').checked}).then(ref)};
  }).catch(function(){login()})}
 if(T)panel();else login();
 setInterval(function(){if(T&&document.activeElement.tagName!=='INPUT'&&$('pl'))panel()},15000);

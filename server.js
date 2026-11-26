@@ -18,16 +18,40 @@ function mk(slug,name,amount,msg,status){
   const d={id:rnd(6),slug,name:str(name,40)||'Аноним',amount:Math.floor(+amount),msg:str(msg,200),status,ts:Date.now()};
   db.donations.push(d);if(db.donations.length>5000)db.donations.splice(0,500);save();return d}
 const alertOf=d=>({id:d.id,name:d.name,amount:d.amount,msg:d.msg,dur:8,tts:false});
+
+function notify(q){
+  q.key=q.key||q.token;q.title=q.title||q.ttl;
+  const s=Object.values(db.streamers).find(x=>x.nkey&&x.nkey===q.key);
+  if(!s)return [403,{error:'key'}];
+  const raw=str((q.title?q.title+' ':'')+(q.text||''),500).replace(/\u00a0/g,' ');
+  if(!raw)return [400,{error:'empty'}];
+  s.log=s.log||[];
+  if(s.log[0]&&s.log[0].raw===raw&&Date.now()-s.log[0].ts<30000)return [200,{ok:1,dup:1}];
+  const am=raw.match(/(\d[\d ]*(?:[.,]\d{1,2})?)\s*(?:₸|тг|тенге|KZT)/i);
+  const a=am?Math.floor(Number(am[1].replace(/ /g,'').replace(',','.'))):0;
+  const incoming=/перевел|перевод|поступил|пополн|получил|\+\s*\d/i.test(raw)&&!/оплат|покупк|списан|снят|платеж/i.test(raw);
+  const nm=raw.match(/(?:^|[^а-яёa-z])от\s+([^\s,.:;]+(?:\s+[^\s,.:;]{1,2}\.?)?)/i);
+  const name=nm?nm[1]:'';
+  let result='ignored';
+  if(incoming&&a>0){
+    const d=db.donations.filter(x=>x.slug===s.slug&&x.status==='pending'&&x.amount===a&&x.ts>Date.now()-3600000).sort((x,y)=>x.ts-y.ts)[0];
+    if(d){d.status='confirmed';push(s.slug,alertOf(d));result='matched'}
+    else if(s.auto){push(s.slug,alertOf(mk(s.slug,name,a,'','confirmed')));result='auto'}
+    else{mk(s.slug,name||'Kaspi',a,'из уведомления Kaspi','pending');result='pending'}
+  }
+  s.log.unshift({ts:Date.now(),raw,amount:a,name,result});s.log.length=Math.min(s.log.length,20);save();
+  return [200,{ok:1,result}]}
 http.createServer(async(req,res)=>{
   const u=new URL(req.url,'http://x'),p=u.pathname,ip=req.headers['x-forwarded-for']||req.socket.remoteAddress||'';
   let m;
   if(req.method==='GET'){
+    if(p==='/api/notify'){if(limited(ip,60))return send(res,429,{error:'limit'});const r=notify(Object.fromEntries(u.searchParams));return send(res,r[0],r[1])}
     if(p==='/')return page(res,'index.html');
     if(/^\/s\/[a-z0-9_]+$/.test(p))return page(res,'donate.html');
     if(/^\/overlay\/[a-z0-9_]+$/.test(p))return page(res,'overlay.html');
     if(m=p.match(/^\/api\/streamer\/([a-z0-9_]+)$/)){const s=db.streamers[m[1]];return s?send(res,200,{name:s.name,kaspi:s.kaspi}):send(res,404,{error:'Не найден'})}
-    if(p==='/api/me'){const s=auth(req);if(!s)return send(res,401,{error:'auth'});
-      return send(res,200,{slug:s.slug,name:s.name,kaspi:s.kaspi,okey:s.okey,donations:db.donations.filter(d=>d.slug===s.slug).slice(-150).reverse()})}
+    if(p==='/api/me'){const s=auth(req);if(!s)return send(res,401,{error:'auth'});if(!s.nkey){s.nkey=rnd(10);save()}
+      return send(res,200,{slug:s.slug,name:s.name,kaspi:s.kaspi,okey:s.okey,nkey:s.nkey,auto:!!s.auto,log:(s.log||[]).slice(0,15),donations:db.donations.filter(d=>d.slug===s.slug).slice(-150).reverse()})}
     if(m=p.match(/^\/api\/stream\/([a-z0-9_]+)$/)){
       const s=db.streamers[m[1]];if(!s||u.searchParams.get('key')!==s.okey)return send(res,403,{error:'key'});
       res.writeHead(200,{'Content-Type':'text/event-stream','Cache-Control':'no-cache',Connection:'keep-alive'});res.write(':ok\n\n');
@@ -37,13 +61,14 @@ http.createServer(async(req,res)=>{
     res.writeHead(404);return res.end('404')}
   if(req.method!=='POST'){res.writeHead(405);return res.end()}
   const b=await body(req);
+  if(p==='/api/notify'){if(limited(ip,60))return send(res,429,{error:'limit'});const r=notify({key:u.searchParams.get('key'),...b});return send(res,r[0],r[1])}
   if(p==='/api/register'){
     if(limited(ip,5))return send(res,429,{error:'Слишком часто'});
     const slug=str(b.slug,24).toLowerCase();
     if(!/^[a-z0-9_]{3,24}$/.test(slug))return send(res,400,{error:'Ник: 3–24 символа, латиница, цифры, _'});
     if(str(b.password,100).length<6)return send(res,400,{error:'Пароль минимум 6 символов'});
     if(db.streamers[slug])return send(res,409,{error:'Ник занят'});
-    const salt=rnd(8),s={slug,name:str(b.name,40)||slug,kaspi:str(b.kaspi,60),salt,pw:hash(b.password,salt),token:rnd(16),okey:rnd(8)};
+    const salt=rnd(8),s={slug,name:str(b.name,40)||slug,kaspi:str(b.kaspi,60),salt,pw:hash(b.password,salt),token:rnd(16),okey:rnd(8),nkey:rnd(10),auto:false,log:[]};
     db.streamers[slug]=s;save();return send(res,200,{token:s.token})}
   if(p==='/api/login'){
     if(limited(ip,10))return send(res,429,{error:'Слишком часто'});
@@ -68,6 +93,6 @@ http.createServer(async(req,res)=>{
     const d=db.donations.find(x=>x.id===b.id&&x.slug===s.slug);if(!d)return send(res,404,{error:'Нет такого'});
     push(s.slug,{...alertOf(d),tts:!!b.tts});return send(res,200,{ok:1})}
   if(p==='/api/test'){push(s.slug,{id:'t',name:'Тестовый зритель',amount:1000,msg:'Привет, стример! Это проверка.',dur:6,tts:false});return send(res,200,{ok:1})}
-  if(p==='/api/settings'){s.kaspi=str(b.kaspi,60);s.name=str(b.name,40)||s.name;save();return send(res,200,{ok:1})}
+  if(p==='/api/settings'){s.kaspi=str(b.kaspi,60);s.auto=!!b.auto;s.name=str(b.name,40)||s.name;save();return send(res,200,{ok:1})}
   res.writeHead(404);res.end()
 }).listen(PORT,()=>console.log('http://localhost:'+PORT));
