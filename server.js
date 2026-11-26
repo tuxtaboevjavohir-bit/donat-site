@@ -29,8 +29,9 @@ function notify(q){
   if(s.log[0]&&s.log[0].raw===raw&&Date.now()-s.log[0].ts<30000)return [200,{ok:1,dup:1}];
   const am=raw.match(/(\d[\d ]*(?:[.,]\d{1,2})?)\s*(?:₸|тг|тенге|KZT)/i);
   const a=am?Math.floor(Number(am[1].replace(/ /g,'').replace(',','.'))):0;
-  const incoming=/перевел|перевод|поступил|пополн|получил|\+\s*\d/i.test(raw)&&!/оплат|покупк|списан|снят|платеж/i.test(raw);
-  const nm=raw.match(/(?:^|[^а-яёa-z])от\s+([^\s,.:;]+(?:\s+[^\s,.:;]{1,2}\.?)?)/i);
+  const incoming=/перевел|перевод|поступил|пополн|получил|\+\s*\d/i.test(raw.replace(/ё/g,'е'))&&!/оплат|покупк|списан|снят|платеж/i.test(raw);
+  const rn=raw.replace(/ё/g,'е').replace(/Ё/g,'Е');
+  const nm=rn.match(/(?:^|[^а-яеa-z])от\s+([^\s,.:;]+(?:\s+[^\s,.:;]{1,2}\.?)?)/i)||rn.match(/(?:^|\s)([А-ЯA-Z][^\s,.:;]+(?:\s+[А-ЯA-Z]\.?)?)\s+перевел/);
   const name=nm?nm[1]:'';
   let result='ignored';
   if(incoming&&a>0){

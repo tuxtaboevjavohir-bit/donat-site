@@ -26,6 +26,7 @@ function panel(){
   $('pl').parentNode.onclick=function(e){var c=e.target.dataset.c,x=e.target.dataset.x;if(c)api('/api/confirm',{id:c,action:'confirm',tts:tts()}).then(ref);if(x)api('/api/confirm',{id:x,action:'reject'}).then(ref)};
   document.querySelectorAll('[data-r]').forEach(function(b){b.onclick=function(){api('/api/replay',{id:b.dataset.r,tts:tts()})}});
   $('mb').onclick=function(){api('/api/manual',{name:$('mn').value,amount:$('ma').value,msg:$('mm').value,tts:tts()}).then(ref).catch(function(e){alert(e.error)})};
+  $('au').onchange=function(){api('/api/settings',{name:$('sn').value,kaspi:$('sk').value,auto:$('au').checked})};
   $('ts').onclick=function(){api('/api/test',{})};
   $('sb').onclick=function(){api('/api/settings',{name:$('sn').value,kaspi:$('sk').value,auto:$('au').checked}).then(ref)};
  }).catch(function(){login()})}
