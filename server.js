@@ -38,10 +38,10 @@ function notify(q){
   name=str(name,40);cmt=str(cmt,200);
   let result='ignored';
   if(incoming&&a>0){
-    const d=db.donations.filter(x=>x.slug===s.slug&&x.status==='pending'&&x.amount===a&&x.ts>Date.now()-3600000).sort((x,y)=>x.ts-y.ts)[0];
-    if(d){d.status='confirmed';push(s.slug,alertOf(d));result='matched'}
+    const d=db.donations.filter(x=>x.slug===s.slug&&x.status==='pending'&&!x.src&&x.amount===a&&x.ts>Date.now()-3600000).sort((x,y)=>x.ts-y.ts)[0];
+    if(d){d.status='confirmed';if(d.name==='Аноним'&&name)d.name=name;push(s.slug,alertOf(d));result='matched'}
     else if(s.auto){push(s.slug,alertOf(mk(s.slug,name,a,cmt,'confirmed')));result='auto'}
-    else{mk(s.slug,name||'Kaspi',a,cmt||'из уведомления Kaspi','pending');result='pending'}
+    else{mk(s.slug,name||'Kaspi',a,cmt||'из уведомления Kaspi','pending').src='notify';result='pending'}
   }
   s.log.unshift({ts:Date.now(),raw,amount:a,name,result});s.log.length=Math.min(s.log.length,20);save();
   return [200,{ok:1,result}]}
