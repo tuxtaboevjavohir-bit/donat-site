@@ -92,6 +92,7 @@ http.createServer(async(req,res)=>{
     if(/^\/s\/[a-z0-9_]+$/.test(p))return page(res,'donate.html');
     if(/^\/overlay\/[a-z0-9_]+$/.test(p))return page(res,'overlay.html');
     if(/^\/o\/[a-z0-9_]+\/[a-f0-9]+(\/(alert|goal|top))?$/.test(p))return page(res,'overlay.html');
+    if(m=p.match(/^\/w\/([a-f0-9]+)(?:\/(alert|goal|top))?$/)){const t=Object.values(db.streamers).find(x=>x.okey===m[1]);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{Location:'/o/'+t.slug+'/'+t.okey+(m[2]?'/'+m[2]:'')});return res.end()}
     if(p==='/api/notify'){if(limited(ip,60))return send(res,429,{error:'limit'});const r=notify(Object.fromEntries(u.searchParams));return send(res,r[0],r[1])}
     if(m=p.match(/^\/api\/streamer\/([a-z0-9_]+)$/)){const s=db.streamers[m[1]];if(!s)return send(res,404,{error:'Не найден'});const w=widget(s);return send(res,200,{name:s.name,kaspi:s.kaspi,goal:w.goal,top:w.top,style:w.style})}
     if(p==='/api/me'){const s=auth(req);if(!s)return send(res,401,{error:'auth'});if(!s.nkey){s.nkey=rnd(10);save()}return send(res,200,view(s))}
