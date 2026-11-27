@@ -3,7 +3,7 @@ const http=require('http'),fs=require('fs'),path=require('path'),crypto=require(
 const PORT=process.env.PORT||3000,DB=process.env.DATA_FILE||path.join(__dirname,'data.json');
 let db={streamers:{},donations:[]};
 try{db=JSON.parse(fs.readFileSync(DB,'utf8'))}catch(e){}
-db.streamers=db.streamers||{};db.donations=db.donations||[];db.payments=db.payments||[];db.chats=db.chats||{};db.contacts=db.contacts||[];db.settings=db.settings||{};db.plans=db.plans||{};
+db.streamers=db.streamers||{};db.donations=db.donations||[];db.payments=db.payments||[];db.chats=db.chats||{};db.contacts=db.contacts||[];db.settings=db.settings||{};db.plans=db.plans||{};db.news=db.news||[];
 let tm;const save=()=>{clearTimeout(tm);tm=setTimeout(()=>fs.writeFile(DB,JSON.stringify(db),()=>{}),200)};
 const rnd=n=>crypto.randomBytes(n).toString('hex');
 const hash=(p,s)=>crypto.scryptSync(p,s,32).toString('hex');
@@ -119,7 +119,9 @@ const pubSet=()=>({kaspi:str(db.settings.kaspi,60),tg:str(db.settings.tg,80),wa:
 const view=s=>{const pl=planOf(s),u=usedOf(s),ch=db.chats[s.slug];return {slug:s.slug,name:s.name,kaspi:s.kaspi,okey:s.okey,nkey:s.nkey,auto:!!s.auto,cfg:cfg(s),stats:stats(s),log:(s.log||[]).slice(0,15),
   donations:db.donations.filter(d=>d.slug===s.slug).slice(-Math.min(150,pl.f.history>0?pl.f.history:150)).reverse(),
   plan:{id:pl.id,name:pl.name,f:pl.f,until:isAdmin(s)?0:(pl.id==='free'?0:s.planUntil),admin:isAdmin(s)},plans:plans(),usage:{n:u.n,limit:pl.f.alerts},
-  payments:db.payments.filter(x=>x.slug===s.slug).slice(-5).reverse(),pay:pubSet(),unread:ch?ch.uu||0:0,banned:!!s.banned}};
+  payments:db.payments.filter(x=>x.slug===s.slug).slice(-5).reverse(),pay:pubSet(),unread:ch?ch.uu||0:0,banned:!!s.banned,
+  online:(clients[s.slug]||new Set()).size,lastNotify:(s.log&&s.log[0])?s.log[0].ts:0,news:db.news.slice(-5).reverse(),
+  ref:(()=>{const all=Object.values(db.streamers).filter(x=>x.ref===s.slug);return {invited:all.length,paid:all.filter(x=>x.refPaid).length}})()}};
 http.createServer(async(req,res)=>{
   const u=new URL(req.url,'http://x'),p=u.pathname,ip=(req.headers['x-forwarded-for']||req.socket.remoteAddress||'').split(',')[0];
   let m;
@@ -153,7 +155,7 @@ http.createServer(async(req,res)=>{
         const appr=db.payments.filter(x=>x.status==='approved'),mstart=new Date(mk+'-01T00:00:00Z').getTime()-5*3600000;
         const chats=Object.keys(db.chats).map(k=>{const c=db.chats[k],l=c.msgs[c.msgs.length-1],x=db.streamers[k];return {slug:k,name:x?x.name:k,plan:x?planId(x):'free',unread:c.ua||0,last:l?l.t:'',ts:l?l.ts:0,from:l?l.f:''}}).sort((a,b)=>(b.unread>0)-(a.unread>0)||b.ts-a.ts);
         return send(res,200,{stats:{streamers:sl.length,paid:sl.filter(x=>x.plan!=='free'&&!x.admin).length,pending:db.payments.filter(x=>x.status==='pending').length,unread:chats.reduce((a,c)=>a+c.unread,0)+db.contacts.filter(c=>!c.done).length,donations:all.length,revenue:appr.reduce((a,x)=>a+x.amount,0),revenueMonth:appr.filter(x=>x.ts>=mstart).reduce((a,x)=>a+x.amount,0)},
-          streamers:sl.slice(0,500),payments:db.payments.slice(-100).reverse(),chats,contacts:db.contacts.slice(-100).reverse(),settings:pubSet(),plans:plans(),admins:ADMINS})}
+          streamers:sl.slice(0,500),payments:db.payments.slice(-100).reverse(),chats,contacts:db.contacts.slice(-100).reverse(),settings:pubSet(),plans:plans(),admins:ADMINS,news:db.news.slice(-30).reverse()})}
       res.writeHead(404);return res.end()}
     if(p==='/api/me'){const s=auth(req);if(!s)return send(res,401,{error:'auth'});if(!s.nkey){s.nkey=rnd(10);save()}return send(res,200,view(s))}
     if(m=p.match(/^\/api\/widget\/([a-z0-9_]+)$/)){const s=db.streamers[m[1]];if(!s||u.searchParams.get('key')!==s.okey)return send(res,403,{error:'key'});return send(res,200,widget(s))}
@@ -174,6 +176,7 @@ http.createServer(async(req,res)=>{
     if(str(b.password,100).length<6)return send(res,400,{error:'Пароль минимум 6 символов'});
     if(db.streamers[slug])return send(res,409,{error:'Ник занят'});
     const salt=rnd(8),s={slug,name:str(b.name,40)||slug,kaspi:str(b.kaspi,60),salt,pw:hash(b.password,salt),token:rnd(16),okey:rnd(8),nkey:rnd(10),auto:false,log:[]};
+    const rf=str(b.ref,24).toLowerCase();if(rf&&rf!==slug&&db.streamers[rf])s.ref=rf;
     db.streamers[slug]=s;save();return send(res,200,{token:s.token})}
   if(p==='/api/login'){
     if(limited(ip,10,'login'))return send(res,429,{error:'Слишком часто'});
@@ -203,7 +206,8 @@ http.createServer(async(req,res)=>{
   if(p.startsWith('/api/admin/')){
     if(!isAdmin(s))return send(res,403,{error:'admin'});
     if(p==='/api/admin/pay'){const x=db.payments.find(y=>y.id===b.id);if(!x||x.status!=='pending')return send(res,404,{error:'Нет такой заявки'});
-      if(b.action==='approve'){const t=db.streamers[x.slug];if(!t)return send(res,404,{error:'Нет стримера'});const base=(t.plan===x.plan&&t.planUntil>Date.now())?t.planUntil:Date.now();t.plan=x.plan;t.planUntil=base+x.months*30*86400000;x.status='approved'}else x.status='rejected';
+      if(b.action==='approve'){const t=db.streamers[x.slug];if(!t)return send(res,404,{error:'Нет стримера'});const base=(t.plan===x.plan&&t.planUntil>Date.now())?t.planUntil:Date.now();t.plan=x.plan;t.planUntil=base+x.months*30*86400000;x.status='approved';
+        if(t.ref&&!t.refPaid){const r=db.streamers[t.ref];if(r&&!isAdmin(r)){const act=r.plan&&r.planUntil>Date.now(),b2=act?r.planUntil:Date.now();r.plan=act&&r.plan==='max'?'max':'pro';r.planUntil=b2+7*86400000}t.refPaid=true}}else x.status='rejected';
       x.ts2=Date.now();save();return send(res,200,{ok:1})}
     if(p==='/api/admin/grant'){const t=db.streamers[str(b.slug,24)];if(!t)return send(res,404,{error:'Нет стримера'});
       if(b.plan==='free'){t.plan='';t.planUntil=0}else if(['pro','max'].includes(b.plan)){const d=Math.max(1,Math.min(3650,Math.floor(+b.days)||30)),base=(t.plan===b.plan&&t.planUntil>Date.now())?t.planUntil:Date.now();t.plan=b.plan;t.planUntil=base+d*86400000}else return send(res,400,{error:'plan'});
@@ -212,6 +216,7 @@ http.createServer(async(req,res)=>{
     if(p==='/api/admin/reply'){const sl=str(b.slug,24),t=str(b.text,1000);if(!t||!db.streamers[sl])return send(res,400,{error:'Пусто'});
       const ch=db.chats[sl]=db.chats[sl]||{msgs:[],ua:0,uu:0};ch.msgs.push({f:'a',t,ts:Date.now()});ch.uu=(ch.uu||0)+1;ch.ua=0;save();return send(res,200,{ok:1})}
     if(p==='/api/admin/contact'){const c=db.contacts.find(y=>y.id===b.id);if(!c)return send(res,404,{error:'Нет'});if(b.action==='delete')db.contacts.splice(db.contacts.indexOf(c),1);else c.done=!!b.done;save();return send(res,200,{ok:1})}
+    if(p==='/api/admin/news'){if(b.del){const k=db.news.findIndex(y=>y.id===b.del);if(k>=0)db.news.splice(k,1)}else{const t=str(b.title,80),tx=str(b.text,600);if(!t)return send(res,400,{error:'Нужен заголовок'});db.news.push({id:rnd(4),title:t,text:tx,ts:Date.now()});if(db.news.length>100)db.news.splice(0,20)}save();return send(res,200,{ok:1})}
     if(p==='/api/admin/settings'){db.settings.kaspi=str(b.kaspi,60);db.settings.tg=str(b.tg,80);db.settings.wa=str(b.wa,80);save();return send(res,200,{ok:1})}
     if(p==='/api/admin/plans'){const inp=b.plans||{};PIDS.forEach(k=>{const c=inp[k];if(!c)return;const o=db.plans[k]=db.plans[k]||{};o.name=str(c.name,20)||DEFPLANS[k].name;if(k!=='free')o.price=Math.max(0,Math.floor(+c.price)||0);
         o.f=o.f||{};FBOOL.forEach(f=>{if(c.f&&f in c.f)o.f[f]=!!c.f[f]});FNUM.forEach(f=>{if(c.f&&f in c.f){const v=Math.floor(+c.f[f]);o.f[f]=Number.isFinite(v)?Math.max(-1,Math.min(1e6,v)):DEFPLANS[k].f[f]}})});
