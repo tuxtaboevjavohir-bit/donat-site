@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Оверлей</title>
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Оверлей</title><meta name="robots" content="noindex,nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <style>
 :root{--c1:#ff4d5e;--c2:#ff8a3d;--f:'Rubik',system-ui,sans-serif}
@@ -34,8 +34,9 @@
 var parts=location.pathname.split('/'),qs=new URLSearchParams(location.search),slug=parts[2],key=qs.get('key')||'',W=qs.get('w')||'alert';
 if(parts[1]==='o'){key=parts[3]||'';W=parts[4]||'alert'}
 var st=document.getElementById('st'),wg=document.getElementById('wg'),q=[],busy=false,ac=null,loadedFont='';
-function fmt(n){return Number(n).toLocaleString('ru-RU')+' ₸'}
-function style(s){if(!s)return;var r=document.documentElement.style;r.setProperty('--c1',s.c1);r.setProperty('--c2',s.c2);r.setProperty('--f',"'"+s.font+"',system-ui,sans-serif");
+var CUR='₸',LANG='ru',PH={ru:' задонатил(а)',en:' donated',kk:' донат жіберді'},SAYS={ru:' пишет: ',en:' says: ',kk:' жазады: '},VL={ru:'ru-RU',en:'en-US',kk:'kk-KZ'},GOALT={ru:'Цель сбора',en:'Donation goal',kk:'Жинау мақсаты'},OF={ru:' из ',en:' of ',kk:' / '},TOPT={ru:'Топ донатеров',en:'Top donors',kk:'Үздік донатерлер'},EMPTY={ru:'Пока пусто',en:'Nothing yet',kk:'Әзірге бос'};
+function fmt(n){return Number(n).toLocaleString('ru-RU')+' '+CUR}
+function style(s){if(!s)return;CUR=s.cur||'₸';LANG=PH[s.lang]?s.lang:'ru';var r=document.documentElement.style;r.setProperty('--c1',s.c1);r.setProperty('--c2',s.c2);r.setProperty('--f',"'"+s.font+"',system-ui,sans-serif");
  if(loadedFont!==s.font){loadedFont=s.font;var l=document.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family='+encodeURIComponent(s.font).replace(/%20/g,'+')+':wght@500;600;700;800&subset=cyrillic&display=swap';document.head.appendChild(l)}}
 function ctx(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}return ac}
 function tone(a,f,t0,len,vol,type){var o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.value=f;var t=a.currentTime+t0;
@@ -48,12 +49,12 @@ function next(){
  if(busy||!q.length)return;busy=true;var v=q.shift();style(v.style);
  st.className=(v.style&&v.style.pos)||'bottom';
  var e=document.createElement('div');e.className='al';e.innerHTML='<div class="in-box"><div class="who"></div><div class="sum"></div><div class="msg"></div><div class="bar"></div></div>';
- var b=e.firstChild;b.children[0].innerHTML='<b></b> задонатил(а)';b.children[0].firstChild.textContent=v.name;
+ var b=e.firstChild;b.children[0].innerHTML='<b></b><span></span>';b.children[0].firstChild.textContent=v.name;b.children[0].lastChild.textContent=PH[LANG];
  b.children[1].textContent=fmt(v.amount);b.children[2].textContent=v.msg||'';if(!v.msg)b.children[2].style.display='none';
  b.children[3].style.animationDuration=(v.dur||8)+'s';
  st.innerHTML='';st.appendChild(e);requestAnimationFrame(function(){requestAnimationFrame(function(){e.classList.add('in')})});
  sound(v.style&&v.style.sound,v.style&&v.style.vol);
- if(v.tts&&v.msg&&window.speechSynthesis){try{var u=new SpeechSynthesisUtterance(v.name+' пишет: '+v.msg);u.lang='ru-RU';speechSynthesis.speak(u)}catch(x){}}
+ if(v.tts&&v.msg&&window.speechSynthesis){try{var u=new SpeechSynthesisUtterance(v.name+SAYS[LANG]+v.msg);u.lang=VL[LANG];speechSynthesis.speak(u)}catch(x){}}
  setTimeout(function(){e.classList.remove('in');e.classList.add('out');setTimeout(function(){st.innerHTML='';busy=false;next()},450)},(v.dur||8)*1000)}
 function widget(){
  fetch('/api/widget/'+slug+'?key='+encodeURIComponent(key)).then(function(r){return r.json()}).then(function(d){
@@ -61,14 +62,14 @@ function widget(){
   if(W==='goal'){
    if(!d.goal.on){wg.innerHTML='';return}
    var p=Math.min(100,Math.round(d.goal.current/d.goal.target*100));
-   wg.innerHTML='<div class="w"><div class="gt"><div></div><span>'+fmt(d.goal.current)+' из '+fmt(d.goal.target)+'</span></div><div class="track"><div class="fill"></div></div><div class="gp">'+p+'%</div></div>';
-   wg.querySelector('.gt div').textContent=d.goal.title||'Цель сбора';
+   wg.innerHTML='<div class="w"><div class="gt"><div></div><span>'+fmt(d.goal.current)+OF[LANG]+fmt(d.goal.target)+'</span></div><div class="track"><div class="fill"></div></div><div class="gp">'+p+'%</div></div>';
+   wg.querySelector('.gt div').textContent=d.goal.title||GOALT[LANG];
    setTimeout(function(){var f=wg.querySelector('.fill');if(f)f.style.width=p+'%'},50)}
   else if(W==='top'){
-   var h='<div class="w"><div class="th">Топ донатеров</div>';
+   var h='<div class="w"><div class="th">'+TOPT[LANG]+'</div>';
    d.top.forEach(function(t,i){h+='<div class="row"><div class="rk">'+(i+1)+'</div><div class="rn"></div><div class="rs">'+fmt(t.total)+'</div></div>'});
    wg.innerHTML=h+'</div>';var ns=wg.querySelectorAll('.rn');d.top.forEach(function(t,i){ns[i].textContent=t.name});
-   if(!d.top.length)wg.innerHTML='<div class="w"><div class="th">Топ донатеров</div><div class="gp">Пока пусто</div></div>'}
+   if(!d.top.length)wg.innerHTML='<div class="w"><div class="th">'+TOPT[LANG]+'</div><div class="gp">'+EMPTY[LANG]+'</div></div>'}
  }).catch(function(){})}
 function open(){var es=new EventSource('/api/stream/'+slug+'?key='+encodeURIComponent(key));
  es.onmessage=function(m){var d;try{d=JSON.parse(m.data)}catch(e){return}

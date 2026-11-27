@@ -1,11 +1,12 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Донат стримеру</title>
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>{{TITLE}}</title><meta name="description" content="{{DESC}}"><meta name="robots" content="{{ROBOTS}}"><link rel="canonical" href="{{URL}}/s/{{SLUG}}">
+<meta property="og:type" content="website"><meta property="og:title" content="{{TITLE}}"><meta property="og:description" content="{{DESC}}"><meta property="og:url" content="{{URL}}/s/{{SLUG}}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <style>
 :root{--c1:#ff4d5e;--c2:#ff8a3d;--bg:#0d0d14;--card:#16161f;--ln:#262634;--tx:#f4f3f8;--mut:#9a98ab;--in:#1d1d29}
 @media(prefers-color-scheme:light){:root{--bg:#f4f3f8;--card:#fff;--ln:#e4e2ec;--tx:#17161d;--mut:#6c6a7a;--in:#f4f3f8}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 'Manrope',system-ui,-apple-system,sans-serif;min-height:100vh}
 body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(70% 45% at 50% -10%,color-mix(in srgb,var(--c1) 38%,transparent),transparent 70%)}
-.wrap{max-width:460px;margin:0 auto;padding:max(22px,env(safe-area-inset-top)) 16px 40px}
+.wrap{position:relative;max-width:460px;margin:0 auto;padding:max(22px,env(safe-area-inset-top)) 16px 40px}
 .hero{text-align:center;padding:18px 0 22px}
 .av{width:84px;height:84px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-size:36px;font-weight:800;color:#fff;background:linear-gradient(130deg,var(--c1),var(--c2));box-shadow:0 10px 34px color-mix(in srgb,var(--c1) 50%,transparent)}
 h1{margin:0;font-size:26px;font-weight:800}.sub{color:var(--mut);margin-top:4px;font-size:15px}
@@ -32,37 +33,46 @@ textarea{resize:none;min-height:76px}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:18px}
 </style></head><body><div class="wrap" id="app"><div class="hero"><div class="sub">Загрузка…</div></div></div>
 <script>
-var slug=location.pathname.split('/')[2],app=document.getElementById('app'),D=null;
-function fmt(n){return Number(n).toLocaleString('ru-RU')+' ₸'}
-function E(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e}
+var slug=location.pathname.split('/')[2],app=document.getElementById('app'),D=null,lang=null,CUR='₸';
+var L={ru:{load:'Загрузка…',nf:'Стример не найден',nfs:'Проверьте ссылку',sub:'Поддержите стримера — ваш донат появится в эфире',goal:'Цель сбора',s1:'Переведите в Kaspi',nonum:'номер не указан',cp:'Копировать',cpd:'Скопировано',s2:'Заполните и отправьте',name:'Ваше имя',nameph:'Как вас показать в эфире',amt:'Сумма',msg:'Сообщение',msgph:'Что сказать стримеру?',send:'Отправить донат',needamt:'Укажите сумму',net:'Ошибка сети',thx:'Спасибо!',after:'Переведите {a} в Kaspi, если ещё не сделали — донат появится в эфире сразу после поступления.',again:'Ещё донат',top:'Топ донатеров',rating:'Рейтинг стримеров',ft:'Донат-алерт'},
+en:{load:'Loading…',nf:'Streamer not found',nfs:'Check the link',sub:'Support the streamer — your donation will appear on stream',goal:'Donation goal',s1:'Send via Kaspi',nonum:'number not set',cp:'Copy',cpd:'Copied',s2:'Fill in and submit',name:'Your name',nameph:'How to show you on stream',amt:'Amount',msg:'Message',msgph:'What do you want to say?',send:'Send donation',needamt:'Enter an amount',net:'Network error',thx:'Thank you!',after:'Send {a} via Kaspi if you have not yet — the donation will appear on stream as soon as it arrives.',again:'Donate again',top:'Top donors',rating:'Streamer ranking',ft:'Donat-alert'},
+kk:{load:'Жүктелуде…',nf:'Стример табылмады',nfs:'Сілтемені тексеріңіз',sub:'Стримерді қолдаңыз — донатыңыз эфирде көрсетіледі',goal:'Жинау мақсаты',s1:'Kaspi арқылы аударыңыз',nonum:'нөмір көрсетілмеген',cp:'Көшіру',cpd:'Көшірілді',s2:'Толтырып жіберіңіз',name:'Атыңыз',nameph:'Эфирде қалай көрсету керек',amt:'Сома',msg:'Хабарлама',msgph:'Стримерге не айтасыз?',send:'Донат жіберу',needamt:'Соманы көрсетіңіз',net:'Желі қатесі',thx:'Рахмет!',after:'Әлі аудармаған болсаңыз, {a} Kaspi-ге аударыңыз — донат түскен бойда эфирде шығады.',again:'Тағы донат',top:'Үздік донатерлер',rating:'Стримерлер рейтингі',ft:'Донат-алерт'}};
+function t(k){return (L[lang]||L.ru)[k]}
+function fmt(n){return Number(n).toLocaleString('ru-RU')+' '+CUR}
+function E(tg,c,h){var e=document.createElement(tg);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e}
 function T(el,s){el.textContent=s;return el}
-fetch('/api/streamer/'+slug).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(d){D=d;render()}).catch(function(){app.innerHTML='<div class="hero"><div class="av">?</div><h1>Стример не найден</h1><div class="sub">Проверьте ссылку</div></div>'});
+function pick(def){var q=null;try{q=new URLSearchParams(location.search).get('lang')||localStorage.getItem('lang')}catch(e){}return L[q]?q:(L[def]?def:'ru')}
+fetch('/api/streamer/'+slug).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(d){D=d;CUR=(d.style&&d.style.cur)||'₸';lang=pick(d.style&&d.style.lang);render()}).catch(function(){lang=pick('ru');app.innerHTML='<div class="hero"><div class="av">?</div><h1>'+t('nf')+'</h1><div class="sub">'+t('nfs')+'</div></div>'});
 function render(){
  var st=D.style||{};var r=document.documentElement.style;r.setProperty('--c1',st.c1||'#ff4d5e');r.setProperty('--c2',st.c2||'#ff8a3d');
- document.title='Донат · '+D.name;app.innerHTML='';
- var hero=E('div','hero','<div class="av"></div><h1></h1><div class="sub">Поддержите стримера — ваш донат появится в эфире</div>');
- T(hero.querySelector('.av'),(D.name||'?').trim().charAt(0).toUpperCase());T(hero.querySelector('h1'),D.name);app.appendChild(hero);
+ document.documentElement.lang=lang;app.innerHTML='';
+ var sw=E('div','',''),sel=E('select','','<option value="ru">RU</option><option value="en">EN</option><option value="kk">KZ</option>');sel.value=lang;sel.style.cssText='position:absolute;right:16px;top:16px;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:10px;padding:6px 10px;font:inherit;font-weight:700;font-size:13px';
+ sel.onchange=function(){lang=sel.value;try{localStorage.setItem('lang',lang)}catch(e){}render()};sw.appendChild(sel);app.appendChild(sw);
+ var hero=E('div','hero','<div class="av"></div><h1></h1><div class="sub"></div>');
+ T(hero.querySelector('.av'),(D.name||'?').trim().charAt(0).toUpperCase());T(hero.querySelector('h1'),D.name);T(hero.querySelector('.sub'),t('sub'));app.appendChild(hero);
  if(D.goal&&D.goal.on){var p=Math.min(100,Math.round(D.goal.current/D.goal.target*100));
   var g=E('div','card goal','<div class="t"><div class="gt"></div><span></span></div><div class="tr"><i></i></div>');
-  T(g.querySelector('.gt'),D.goal.title||'Цель сбора');T(g.querySelector('span'),fmt(D.goal.current)+' / '+fmt(D.goal.target));app.appendChild(g);
+  T(g.querySelector('.gt'),D.goal.title||t('goal'));T(g.querySelector('span'),fmt(D.goal.current)+' / '+fmt(D.goal.target));app.appendChild(g);
   setTimeout(function(){g.querySelector('i').style.width=p+'%'},80)}
- var f=E('div','card','');f.innerHTML='<div class="step"><div class="n">1</div><div style="flex:1"><b>Переведите в Kaspi</b><div class="kas"><b></b><button class="cp" type="button">Копировать</button></div></div></div>'
-  +'<div class="step" style="margin-top:16px"><div class="n">2</div><div style="flex:1"><b>Заполните и отправьте</b>'
-  +'<label>Ваше имя</label><input id="nm" maxlength="40" placeholder="Как вас показать в эфире">'
-  +'<label>Сумма, ₸</label><input id="am" type="number" inputmode="numeric" min="1" placeholder="1000"><div class="chips"></div>'
-  +'<label>Сообщение</label><textarea id="ms" maxlength="200" placeholder="Что сказать стримеру?"></textarea>'
-  +'<button class="btn" id="go">Отправить донат</button><div class="err" id="er"></div></div></div>';
- var kb=f.querySelector('.kas b');T(kb,D.kaspi||'номер не указан');
- f.querySelector('.cp').onclick=function(){var b=this,t=D.kaspi||'';try{navigator.clipboard.writeText(t)}catch(e){}b.textContent='Скопировано';setTimeout(function(){b.textContent='Копировать'},1500)};
- [500,1000,2000,5000].forEach(function(v){var c=E('button','chip',fmt(v));c.type='button';c.onclick=function(){f.querySelector('#am').value=v};f.querySelector('.chips').appendChild(c)});
+ var f=E('div','card','');f.innerHTML='<div class="step"><div class="n">1</div><div style="flex:1"><b></b><div class="kas"><b></b><button class="cp" type="button"></button></div></div></div>'
+  +'<div class="step" style="margin-top:16px"><div class="n">2</div><div style="flex:1"><b class="s2"></b>'
+  +'<label class="l1"></label><input id="nm" maxlength="40">'
+  +'<label class="l2"></label><input id="am" type="number" inputmode="numeric" min="1" placeholder="1000"><div class="chips"></div>'
+  +'<label class="l3"></label><textarea id="ms" maxlength="200"></textarea>'
+  +'<button class="btn" id="go"></button><div class="err" id="er"></div></div></div>';
+ T(f.querySelector('.step b'),t('s1'));T(f.querySelector('.s2'),t('s2'));T(f.querySelector('.l1'),t('name'));T(f.querySelector('.l2'),t('amt')+', '+CUR);T(f.querySelector('.l3'),t('msg'));
+ f.querySelector('#nm').placeholder=t('nameph');f.querySelector('#ms').placeholder=t('msgph');T(f.querySelector('#go'),t('send'));
+ var kb=f.querySelector('.kas b');T(kb,D.kaspi||t('nonum'));var cpb=f.querySelector('.cp');T(cpb,t('cp'));
+ cpb.onclick=function(){var b=this,x=D.kaspi||'';try{navigator.clipboard.writeText(x)}catch(e){}b.textContent=t('cpd');setTimeout(function(){b.textContent=t('cp')},1500)};
+ [500,1000,2000,5000].forEach(function(v){var c=E('button','chip','');T(c,fmt(v));c.type='button';c.onclick=function(){f.querySelector('#am').value=v};f.querySelector('.chips').appendChild(c)});
  app.appendChild(f);
  f.querySelector('#go').onclick=function(){var b=this,er=f.querySelector('#er'),a=parseInt(f.querySelector('#am').value,10);er.textContent='';
-  if(!(a>0)){er.textContent='Укажите сумму';return}b.disabled=true;
+  if(!(a>0)){er.textContent=t('needamt');return}b.disabled=true;
   fetch('/api/donate/'+slug,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:f.querySelector('#nm').value,amount:a,msg:f.querySelector('#ms').value})})
   .then(function(r){return r.json()}).then(function(j){b.disabled=false;if(j.error){er.textContent=j.error;return}
-   f.innerHTML='<div class="ok"><div class="big">🎉</div><h2 style="margin:8px 0 4px">Спасибо!</h2><div class="sub">Переведите '+fmt(a)+' в Kaspi, если ещё не сделали — донат появится в эфире сразу после поступления.</div><button class="btn" id="again">Ещё донат</button></div>';
-   f.querySelector('#again').onclick=render}).catch(function(){b.disabled=false;er.textContent='Ошибка сети'})};
- if(D.top&&D.top.length){var t=E('div','card top','<h3>🏆 Топ донатеров</h3>');D.top.forEach(function(x,i){var r=E('div','r','<div class="k"></div><div class="nm"></div><div class="s"></div>');T(r.children[0],i+1);T(r.children[1],x.name);T(r.children[2],fmt(x.total));t.appendChild(r)});app.appendChild(t)}
- app.appendChild(E('div','foot','Донат-алерт'));
+   f.innerHTML='<div class="ok"><div class="big">🎉</div><h2 style="margin:8px 0 4px"></h2><div class="sub"></div><button class="btn" id="again"></button></div>';
+   T(f.querySelector('h2'),t('thx'));T(f.querySelector('.sub'),t('after').replace('{a}',fmt(a)));T(f.querySelector('#again'),t('again'));f.querySelector('#again').onclick=render}).catch(function(){b.disabled=false;er.textContent=t('net')})};
+ if(D.top&&D.top.length){var tp=E('div','card top','<h3></h3>');T(tp.querySelector('h3'),'🏆 '+t('top'));D.top.forEach(function(x,i){var r=E('div','r','<div class="k"></div><div class="nm"></div><div class="s"></div>');T(r.children[0],i+1);T(r.children[1],x.name);T(r.children[2],fmt(x.total));tp.appendChild(r)});app.appendChild(tp)}
+ var ft=E('div','foot','<a href="/top" style="color:inherit"></a> · <a href="/" style="color:inherit"></a>');T(ft.children[0],t('rating'));T(ft.children[1],t('ft'));app.appendChild(ft);
 }
 </script></body></html>
