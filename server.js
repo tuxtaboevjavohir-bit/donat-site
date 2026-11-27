@@ -9,14 +9,16 @@ const rnd=n=>crypto.randomBytes(n).toString('hex');
 const hash=(p,s)=>crypto.scryptSync(p,s,32).toString('hex');
 const str=(v,n)=>String(v==null?'':v).trim().slice(0,n);
 const clamp=(v,a,b,d)=>{v=Number(v);return isFinite(v)?Math.min(b,Math.max(a,Math.round(v))):d};
+const CURS=['₸','₽','$','€','₴','сом'],LANGS=['ru','en','kk'];
 const FONTS=['Rubik','Montserrat','Manrope','Russo One','Comfortaa'],SOUNDS=['chime','bell','coin','none'],POS=['bottom','center','top'];
-const DEF={c1:'#ff4d5e',c2:'#ff8a3d',font:'Rubik',sound:'chime',vol:70,pos:'bottom',dur:8,min:0,tts:false,ttsMin:0,bad:'',block:'',goalOn:false,goalTitle:'',goalTarget:0,goalStart:0};
+const DEF={c1:'#ff4d5e',c2:'#ff8a3d',font:'Rubik',sound:'chime',vol:70,pos:'bottom',dur:8,min:0,tts:false,ttsMin:0,bad:'',block:'',goalOn:false,goalTitle:'',goalTarget:0,goalStart:0,cur:'₸',lang:'ru',pub:true};
 const cfg=s=>({...DEF,...(s.cfg||{})});
 function cleanCfg(i,o){const c={...DEF,...(o||{})};i=i||{};
   if(/^#[0-9a-f]{6}$/i.test(i.c1))c.c1=i.c1;if(/^#[0-9a-f]{6}$/i.test(i.c2))c.c2=i.c2;
   if(FONTS.includes(i.font))c.font=i.font;if(SOUNDS.includes(i.sound))c.sound=i.sound;if(POS.includes(i.pos))c.pos=i.pos;
   if('vol' in i)c.vol=clamp(i.vol,0,100,c.vol);if('dur' in i)c.dur=clamp(i.dur,3,30,c.dur);
   if('min' in i)c.min=clamp(i.min,0,1e7,c.min);if('ttsMin' in i)c.ttsMin=clamp(i.ttsMin,0,1e7,c.ttsMin);
+  if(CURS.includes(i.cur))c.cur=i.cur;if(LANGS.includes(i.lang))c.lang=i.lang;if('pub' in i)c.pub=!!i.pub;
   if('tts' in i)c.tts=!!i.tts;if('goalOn' in i)c.goalOn=!!i.goalOn;
   if('bad' in i)c.bad=str(i.bad,500);if('block' in i)c.block=str(i.block,500);
   if('goalTitle' in i)c.goalTitle=str(i.goalTitle,60);if('goalTarget' in i)c.goalTarget=clamp(i.goalTarget,0,1e9,c.goalTarget);
@@ -25,7 +27,7 @@ const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const words=t=>String(t||'').split(/[,\n]/).map(x=>x.trim().toLowerCase()).filter(x=>x.length>1);
 const clean=(t,c)=>{t=String(t||'');for(const w of words(c.bad))t=t.replace(new RegExp(esc(w),'gi'),m=>'*'.repeat(m.length));return t};
 const isBlocked=(n,c)=>{n=String(n||'').toLowerCase();return words(c.block).some(w=>n.includes(w))};
-const sty=c=>({c1:c.c1,c2:c.c2,font:c.font,sound:c.sound,vol:c.vol,pos:c.pos});
+const sty=c=>({c1:c.c1,c2:c.c2,font:c.font,sound:c.sound,vol:c.vol,pos:c.pos,cur:c.cur,lang:c.lang});
 const clients={},hits={};
 const limited=(ip,max)=>{const k=ip+':'+Math.floor(Date.now()/60000);hits[k]=(hits[k]||0)+1;return hits[k]>max};
 setInterval(()=>{const n=Math.floor(Date.now()/60000)-2;for(const k in hits)if(+k.split(':').pop()<n)delete hits[k]},120000);
@@ -33,6 +35,11 @@ const body=req=>new Promise(ok=>{let b='';req.on('data',c=>{b+=c;if(b.length>1e5
 const send=(res,c,o)=>{res.writeHead(c,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(o))};
 const auth=req=>{const t=req.headers['x-token'];return t&&Object.values(db.streamers).find(s=>s.token===t)};
 const page=(res,f)=>fs.readFile(path.join(__dirname,f),(e,d)=>{if(e){res.writeHead(404);return res.end('404')}res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Access-Control-Allow-Origin':'*'});res.end(d)});
+const hesc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const baseUrl=req=>(process.env.BASE_URL||('https://'+(req.headers['x-forwarded-host']||req.headers.host||'localhost'))).replace(/\/$/,'');
+const pageT=(req,res,f,map)=>fs.readFile(path.join(__dirname,f),'utf8',(e,d)=>{if(e){res.writeHead(404);return res.end('404')}
+  map=Object.assign({URL:baseUrl(req)},map||{});d=d.replace(/\{\{(\w+)\}\}/g,(m,k)=>k in map?hesc(map[k]):m);
+  res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Access-Control-Allow-Origin':'*'});res.end(d)});
 const push=(slug,d)=>(clients[slug]||new Set()).forEach(r=>r.write('data: '+JSON.stringify(d)+'\n\n'));
 function mk(slug,name,amount,msg,status,src){
   const d={id:rnd(6),slug,name:str(name,40)||'Аноним',amount:Math.floor(+amount),msg:str(msg,200),status,ts:Date.now()};
@@ -51,6 +58,11 @@ function widget(s){
   const cur=all.filter(d=>d.ts>=(c.goalStart||0)).reduce((a,d)=>a+d.amount,0);
   return {goal:{on:c.goalOn&&c.goalTarget>0,title:c.goalTitle,target:c.goalTarget,current:cur},top,
     recent:all.slice(-5).reverse().map(d=>({name:clean(d.name,c),amount:d.amount})),style:sty(c)}}
+function ranking(period){
+  const since=period==='month'?Date.now()-30*86400000:0,agg={};
+  db.donations.forEach(d=>{if(d.status!=='confirmed'||d.rep||d.ts<since)return;const a=agg[d.slug]=agg[d.slug]||{total:0,count:0};a.total+=d.amount;a.count++});
+  return Object.keys(agg).map(k=>{const s=db.streamers[k];if(!s)return null;const c=cfg(s);if(!c.pub)return null;
+    return {slug:k,name:s.name,total:agg[k].total,count:agg[k].count,cur:c.cur}}).filter(Boolean);}
 function stats(s){
   const all=own(s),OFF=5*3600000,day=86400000,t0=Math.floor((Date.now()+OFF)/day)*day-OFF;
   const sum=a=>a.reduce((x,d)=>x+d.amount,0);
@@ -90,8 +102,17 @@ http.createServer(async(req,res)=>{
   if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, HEAD, OPTIONS','Access-Control-Allow-Headers':'*','Access-Control-Max-Age':'86400'});return res.end()}
   if(req.method==='HEAD')req.method='GET';
   if(req.method==='GET'){
-    if(p==='/')return page(res,'index.html');
-    if(/^\/s\/[a-z0-9_]+$/.test(p))return page(res,'donate.html');
+    if(p==='/')return pageT(req,res,'landing.html');
+    if(p==='/panel')return page(res,'index.html');
+    if(p==='/top')return pageT(req,res,'top.html');
+    if(p==='/api/top'){const by=u.searchParams.get('by')==='count'?'count':'total',per=u.searchParams.get('period')==='month'?'month':'all';
+      return send(res,200,{list:ranking(per).sort((a,b)=>b[by]-a[by]||b.count-a.count).slice(0,50)})}
+    if(p==='/robots.txt'){res.writeHead(200,{'Content-Type':'text/plain; charset=utf-8'});return res.end('User-agent: *\nAllow: /\nDisallow: /panel\nDisallow: /api/\nDisallow: /o/\nDisallow: /w/\nDisallow: /overlay/\nDisallow: /alert\nSitemap: '+baseUrl(req)+'/sitemap.xml\n')}
+    if(p==='/sitemap.xml'){const b=baseUrl(req),urls=['/','/top'].concat(Object.keys(db.streamers).filter(k=>cfg(db.streamers[k]).pub).map(k=>'/s/'+k));
+      res.writeHead(200,{'Content-Type':'application/xml; charset=utf-8'});return res.end('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+urls.map(x=>'<url><loc>'+hesc(b+x)+'</loc></url>').join('')+'</urlset>')}
+    if(m=p.match(/^\/s\/([a-z0-9_]+)$/)){const t=db.streamers[m[1]];
+      if(!t)return pageT(req,res,'donate.html',{TITLE:'Донат стримеру',DESC:'Страница донатов',ROBOTS:'noindex',SLUG:m[1]});
+      const c=cfg(t);return pageT(req,res,'donate.html',{TITLE:t.name+' — донат на стриме',DESC:'Поддержать стримера '+t.name+': перевод через Kaspi, ваше сообщение появится в прямом эфире TikTok LIVE.',ROBOTS:c.pub?'index,follow':'noindex',SLUG:m[1]})}
     if(/^\/overlay\/[a-z0-9_]+$/.test(p))return page(res,'overlay.html');
     if(/^\/o\/[a-z0-9_]+\/[a-f0-9]+(\/(alert|goal|top))?$/.test(p))return page(res,'overlay.html');
     if(p==='/alert'){const k=u.searchParams.get('token')||u.searchParams.get('key')||'',w=u.searchParams.get('w');const t=Object.values(db.streamers).find(x=>x.okey&&x.okey===k);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{'Access-Control-Allow-Origin':'*',Location:'/o/'+t.slug+'/'+t.okey+(/^(goal|top)$/.test(w)?'/'+w:'')});return res.end()}

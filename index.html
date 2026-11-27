@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="ru" translate="no"><head><meta charset="utf-8"><meta name="google" content="notranslate"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Донат-алерт</title>
+<!DOCTYPE html><html lang="ru" translate="no"><head><meta charset="utf-8"><meta name="google" content="notranslate"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Донат-алерт</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800&family=Montserrat:wght@600;800&family=Manrope:wght@500;600;700;800&family=Russo+One&family=Comfortaa:wght@600;700&subset=cyrillic&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -47,7 +47,7 @@ button{font:inherit;cursor:pointer}
 <script>
 var TK='tok',tok='',M=null,ready=false,$=function(i){return document.getElementById(i)};
 try{tok=localStorage.getItem(TK)||''}catch(e){}
-function fmt(n){return Number(n).toLocaleString('ru-RU')+' ₸'}
+function fmt(n){return Number(n).toLocaleString('ru-RU')+' '+((M&&M.cfg&&M.cfg.cur)||'₸')}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function toast(t){var e=$('toast');e.textContent=t;e.className='toast on';clearTimeout(toast.t);toast.t=setTimeout(function(){e.className='toast'},1800)}
 function api(p,b){var o={method:b?'POST':'GET',headers:{'x-token':tok}};if(b){o.headers['Content-Type']='application/json';o.body=JSON.stringify(b)}
@@ -68,7 +68,7 @@ var TABS=[['d','Донаты'],['o','Оформление'],['g','Цель и т
 function origin(){return location.origin}
 function ovLink(w){return origin()+'/o/'+M.slug+'/'+M.okey+(w?'/'+w:'')}
 function build(){
- var h='<div class="top"><div class="logo"><i></i>Донат-алерт</div><button class="b s" id="out">Выйти</button></div><div class="tabs">';
+ var h='<div class="top"><div class="logo"><i></i>Донат-алерт</div><div class="row" style="margin:0"><a class="b s" href="/top" target="_blank" style="text-decoration:none">Рейтинг</a><button class="b s" id="out">Выйти</button></div></div><div class="tabs">';
  TABS.forEach(function(t,i){h+='<button class="tab'+(i?'':' on')+'" data-t="'+t[0]+'">'+t[1]+'</button>'});
  h+='</div>';
  /* donations */
@@ -84,6 +84,8 @@ function build(){
  +'<div><label>Показ, сек</label><input type="number" id="dur" min="3" max="30"></div></div>'
  +'<div class="g2"><div><label>Звук</label><select id="sound"><option value="chime">Мелодия</option><option value="bell">Колокольчик</option><option value="coin">Монета</option><option value="none">Без звука</option></select></div><div><label>Громкость: <span id="vv"></span>%</label><input type="range" id="vol" min="0" max="100"></div></div>'
  +'<div class="row"><button class="b" id="snd">▶ Прослушать</button><button class="b" id="tst2">Тест в эфире</button></div></div>'
+ +'<div class="card"><h3>Язык, валюта и рейтинг</h3><div class="g2"><div><label>Язык плашки и страницы зрителей</label><select id="lang"><option value="ru">Русский</option><option value="en">English</option><option value="kk">Қазақша</option></select></div><div><label>Валюта</label><select id="cur"><option>₸</option><option>₽</option><option>$</option><option>€</option><option>₴</option><option>сом</option></select></div></div>'
+ +'<label class="chk"><input type="checkbox" id="pub">Показывать меня в общем рейтинге стримеров и в поиске</label><p class="hint">Видны только имя, ссылка на страницу доната и суммы. Выключите — страница не попадёт в рейтинг и в Google. <a href="/top" target="_blank" style="color:var(--c1)">Открыть рейтинг</a></p></div>'
  +'<div class="card"><h3>Фильтры и озвучка</h3><div class="g2"><div><label>Минимальная сумма, ₸</label><input type="number" id="min" min="0"></div><div><label>Озвучка от суммы, ₸</label><input type="number" id="ttsMin" min="0"></div></div>'
  +'<label class="chk"><input type="checkbox" id="tts">Озвучивать сообщения</label>'
  +'<label>Запрещённые слова (через запятую) — заменяются на ***</label><textarea id="bad"></textarea>'
@@ -112,9 +114,9 @@ function build(){
  $('out').onclick=function(){setTok('');location.reload()};
  fill();bind();
 }
-function cfgVal(){var c={};['c1','c2','font','pos','sound','goalTitle'].forEach(function(k){c[k]=$(k).value});
- ['dur','vol','min','ttsMin','goalTarget'].forEach(function(k){c[k]=Number($(k).value)||0});['tts','goalOn'].forEach(function(k){c[k]=$(k).checked});c.bad=$('bad').value;c.block=$('block').value;return c}
-function fill(){var c=M.cfg;['c1','c2','font','pos','sound','goalTitle','dur','vol','min','ttsMin','goalTarget','bad','block'].forEach(function(k){$(k).value=c[k]});
+function cfgVal(){var c={};['c1','c2','font','pos','sound','goalTitle','lang','cur'].forEach(function(k){c[k]=$(k).value});
+ ['dur','vol','min','ttsMin','goalTarget'].forEach(function(k){c[k]=Number($(k).value)||0});['tts','goalOn','pub'].forEach(function(k){c[k]=$(k).checked});c.bad=$('bad').value;c.block=$('block').value;return c}
+function fill(){var c=M.cfg;['c1','c2','font','pos','sound','goalTitle','dur','vol','min','ttsMin','goalTarget','bad','block','lang','cur'].forEach(function(k){$(k).value=c[k]});$('pub').checked=c.pub!==false;
  $('tts').checked=c.tts;$('goalOn').checked=c.goalOn;$('pn').value=M.name||'';$('pk').value=M.kaspi||'';$('auto').checked=M.auto;
  $('lg').value=ovLink('goal');$('lt').value=ovLink('top');$('lo').value=ovLink();$('ls').value=origin()+'/w/'+M.okey;$('lv').value=origin()+'/s/'+M.slug;
  $('ln').value=origin()+'/api/notify?key='+M.nkey;$('qr').innerHTML='';try{new QRCode($('qr'),{text:$('lv').value,width:132,height:132,correctLevel:QRCode.CorrectLevel.M})}catch(e){}pv()}
