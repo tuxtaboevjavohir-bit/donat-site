@@ -68,7 +68,7 @@ function show(s,d,over){
   const pl=planOf(s),u=usedOf(s);
   if(pl.f.alerts>=0&&u.n>=pl.f.alerts){push(s.slug,{type:'update'});return false}
   u.n++;save();
-  push(s.slug,{type:'alert',id:d.id,name:clean(d.name,c),amount:d.amount,msg:clean(d.msg,c),
+  push(s.slug,{type:'alert',id:d.id,name:clean((s.nicks&&s.nicks[d.name])||d.name,c),amount:d.amount,msg:clean(d.msg,c),
     dur:over.dur?clamp(over.dur,3,30,c.dur):c.dur,tts:!!over.tts||(c.tts&&d.amount>=c.ttsMin&&!!d.msg),style:sty(c)});
   push(s.slug,{type:'update'});return true}
 const own=s=>db.donations.filter(d=>d.slug===s.slug&&d.status==='confirmed'&&!d.rep);
@@ -109,9 +109,9 @@ function notify(q){
   if(incoming&&a>0){
     if(isBlocked(name,c))result='blocked';
     else{
-      const d=db.donations.filter(x=>x.slug===s.slug&&x.status==='pending'&&!x.src&&x.amount===a&&x.ts>Date.now()-3600000).sort((x,y)=>x.ts-y.ts)[0];
+      const d=db.donations.filter(x=>x.slug===s.slug&&x.status==='pending'&&(!x.src||x.src==='site')&&x.amount===a&&x.ts>Date.now()-3600000).sort((x,y)=>x.ts-y.ts)[0];
       if(d){d.status='confirmed';if(d.name==='Аноним'&&name)d.name=name;show(s,d);result='matched'}
-      else if(s.auto){show(s,mk(s.slug,name,a,cmt,'confirmed'));result='auto'}
+      else if(s.auto){show(s,mk(s.slug,name,a,cmt,'confirmed','notify'));result='auto'}
       else{mk(s.slug,name||'Kaspi',a,cmt||'из уведомления Kaspi','pending','notify');result='pending'}}}
   s.log.unshift({ts:Date.now(),raw,amount:a,name,result});s.log.length=Math.min(s.log.length,20);save();
   return [200,{ok:1,result}]}
@@ -157,6 +157,16 @@ http.createServer(async(req,res)=>{
         return send(res,200,{stats:{streamers:sl.length,paid:sl.filter(x=>x.plan!=='free'&&!x.admin).length,pending:db.payments.filter(x=>x.status==='pending').length,unread:chats.reduce((a,c)=>a+c.unread,0)+db.contacts.filter(c=>!c.done).length,donations:all.length,revenue:appr.reduce((a,x)=>a+x.amount,0),revenueMonth:appr.filter(x=>x.ts>=mstart).reduce((a,x)=>a+x.amount,0)},
           streamers:sl.slice(0,500),payments:db.payments.slice(-100).reverse(),chats,contacts:db.contacts.slice(-100).reverse(),settings:pubSet(),plans:plans(),admins:ADMINS,news:db.news.slice(-30).reverse()})}
       res.writeHead(404);return res.end()}
+    if(p==='/api/donations'){const s=auth(req);if(!s)return send(res,401,{error:'auth'});const g=k=>u.searchParams.get(k)||'';
+      const pl=planOf(s),from=+g('from')||0,to=+g('to')||Infinity,q=g('q').toLowerCase().trim(),src=g('src');
+      let L=db.donations.filter(d=>d.slug===s.slug&&d.status==='confirmed'&&!d.rep);
+      if(pl.f.history>0)L=L.slice(-pl.f.history);
+      L=L.filter(d=>d.ts>=from&&d.ts<=to&&(!src||(d.src||'site')===src)).map(d=>({...d,orig:d.name,name:(s.nicks&&s.nicks[d.name])||d.name}));
+      if(q)L=L.filter(d=>(d.name+' '+d.orig).toLowerCase().includes(q));
+      const total=L.reduce((a,d)=>a+d.amount,0),mx=L.reduce((m,d)=>d.amount>(m?m.amount:0)?d:m,null);
+      let items=L.slice().reverse();
+      if(g('group')==='1'){const m={};items.forEach(d=>{const x=m[d.name]=m[d.name]||{id:d.id,name:d.name,orig:d.orig,amount:0,n:0,ts:d.ts,msg:'',grp:1};x.amount+=d.amount;x.n++;if(d.ts>x.ts)x.ts=d.ts});items=Object.values(m).sort((a,b)=>b.amount-a.amount)}
+      return send(res,200,{items:items.slice(0,500),total,count:L.length,max:mx?{name:mx.name,amount:mx.amount}:null,nicks:s.nicks||{},limited:pl.f.history>0})}
     if(p==='/api/me'){const s=auth(req);if(!s)return send(res,401,{error:'auth'});if(!s.nkey){s.nkey=rnd(10);save()}return send(res,200,view(s))}
     if(m=p.match(/^\/api\/widget\/([a-z0-9_]+)$/)){const s=db.streamers[m[1]];if(!s||u.searchParams.get('key')!==s.okey)return send(res,403,{error:'key'});return send(res,200,widget(s))}
     if(m=p.match(/^\/api\/stream\/([a-z0-9_]+)$/)){
@@ -188,7 +198,7 @@ http.createServer(async(req,res)=>{
     if(limited(ip,5,'don'))return send(res,429,{error:'Слишком часто, подождите минуту'});
     const a=Math.floor(+b.amount);if(!(a>=1&&a<=10000000))return send(res,400,{error:'Неверная сумма'});
     if(isBlocked(b.name,cfg(s)))return send(res,200,{ok:1});
-    mk(s.slug,b.name,a,b.msg,'pending');return send(res,200,{ok:1})}
+    mk(s.slug,b.name,a,b.msg,'pending','site');return send(res,200,{ok:1})}
   if(p==='/api/contact'){
     if(limited(ip,4,'contact'))return send(res,429,{error:'Слишком часто, подождите минуту'});
     const t=str(b.text,1000);if(t.length<3)return send(res,400,{error:'Напишите сообщение'});
@@ -226,9 +236,11 @@ http.createServer(async(req,res)=>{
     const d=db.donations.find(x=>x.id===b.id&&x.slug===s.slug);if(!d)return send(res,404,{error:'Нет такого'});
     if(b.action==='reject')d.status='rejected';else{d.status='confirmed';show(s,d,{tts:b.tts})}
     save();return send(res,200,{ok:1})}
+  if(p==='/api/nick'){const n=str(b.name,40),k=str(b.nick,40);if(!n)return send(res,400,{error:'Укажите имя'});s.nicks=s.nicks||{};
+    if(k)s.nicks[n]=k;else delete s.nicks[n];if(Object.keys(s.nicks).length>200)return send(res,400,{error:'Слишком много'});save();return send(res,200,{ok:1,nicks:s.nicks})}
   if(p==='/api/manual'){
     const a=Math.floor(+b.amount);if(!(a>=1))return send(res,400,{error:'Неверная сумма'});
-    show(s,mk(s.slug,b.name,a,b.msg,'confirmed'),{tts:b.tts});return send(res,200,{ok:1})}
+    show(s,mk(s.slug,b.name,a,b.msg,'confirmed','manual'),{tts:b.tts});return send(res,200,{ok:1})}
   if(p==='/api/replay'){const d=db.donations.find(x=>x.id===b.id&&x.slug===s.slug);if(!d)return send(res,404,{error:'Нет такого'});show(s,{...d,amount:Math.max(d.amount,cfg(s).min)},{tts:b.tts});return send(res,200,{ok:1})}
   if(p==='/api/delete'){const i=db.donations.findIndex(x=>x.id===b.id&&x.slug===s.slug);if(i<0)return send(res,404,{error:'Нет такого'});db.donations.splice(i,1);save();push(s.slug,{type:'update'});return send(res,200,{ok:1})}
   if(p==='/api/test'){const c=cfg(s);push(s.slug,{type:'alert',id:'t'+Date.now(),name:'Тестовый зритель',amount:1000,msg:'Привет, стример! Это проверка оформления.',dur:c.dur,tts:false,style:sty(c)});return send(res,200,{ok:1})}
