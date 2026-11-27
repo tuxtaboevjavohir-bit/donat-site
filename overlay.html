@@ -7,7 +7,7 @@
 #st.bottom{align-items:flex-end}#st.center{align-items:center}#st.top{align-items:flex-start}
 .wrap{position:fixed;inset:0;padding:16px;display:flex;align-items:flex-start;justify-content:flex-start}
 </style></head><body>
-<div id="st" class="bottom"></div><div id="wg" class="wrap" style="display:none"></div>
+<script src="/alert.js"></script><div id="st" class="bottom"></div><div id="wg" class="wrap" style="display:none"></div>
 <script>
 var parts=location.pathname.split('/'),qs=new URLSearchParams(location.search),slug=parts[2],key=qs.get('key')||'',W=qs.get('w')||'alert';
 if(parts[1]==='o'){key=parts[3]||'';W=parts[4]||'alert'}
@@ -57,11 +57,7 @@ function widget(){
    wg.querySelector('.gt div').textContent=d.goal.title||GOALT[LANG];
    setTimeout(function(){var f=wg.querySelector('.fill');if(f)f.style.width=p+'%'},50)}
   else if(W==='top'){
-   if(L.top){wg.innerHTML='';return}
-   var h='<div class="'+wcls()+'"><div class="th">'+TOPT[LANG]+'</div>';
-   d.top.forEach(function(t,i){h+='<div class="row"><div class="rk">'+(i+1)+'</div><div class="rn"></div><div class="rs">'+fmt(t.total)+'</div></div>'});
-   wg.innerHTML=h+'</div>';var ns=wg.querySelectorAll('.rn');d.top.forEach(function(t,i){ns[i].textContent=t.name});
-   if(!d.top.length)wg.innerHTML='<div class="'+wcls()+'"><div class="th">'+TOPT[LANG]+'</div><div class="gp">'+EMPTY[LANG]+'</div></div>'}
+   wg.innerHTML=TopCover.render((d.style&&d.style.tc)||'hero',d.top,d.need,CUR,LANG)}
   else if(W==='last'){
    var l=d.last;if(!l){wg.innerHTML='';return}
    wg.innerHTML='<div class="'+wcls('last')+'"><div class="ln"></div><div class="ls"></div><div class="lm"></div></div>';var q=wg.firstChild;

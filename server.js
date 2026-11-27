@@ -11,12 +11,14 @@ const str=(v,n)=>String(v==null?'':v).trim().slice(0,n);
 const clamp=(v,a,b,d)=>{v=Number(v);return isFinite(v)?Math.min(b,Math.max(a,Math.round(v))):d};
 const CURS=['₸','₽','$','€','₴','сом'],LANGS=['ru','en','kk'];
 const FONTS=['Rubik','Montserrat','Manrope','Russo One','Comfortaa'],SOUNDS=['chime','bell','coin','none'],POS=['bottom','center','top'];
-const DEF={c1:'#ff4d5e',c2:'#ff8a3d',font:'Rubik',sound:'chime',vol:70,pos:'bottom',dur:8,min:0,tts:false,ttsMin:0,bad:'',block:'',goalOn:false,goalTitle:'',goalTarget:0,goalStart:0,cur:'₸',lang:'ru',pub:true,theme:'classic',musicOn:false,musicMin:0,ttsVoice:'',ttsRate:100,ttsPitch:100,ttsVol:100,ttsWho:'all',ttsMax:150};
+const DEF={c1:'#ff4d5e',c2:'#ff8a3d',font:'Rubik',sound:'chime',vol:70,pos:'bottom',dur:8,min:0,tts:false,ttsMin:0,bad:'',block:'',goalOn:false,goalTitle:'',goalTarget:0,goalStart:0,cur:'₸',lang:'ru',pub:true,theme:'classic',topCover:'hero',musicOn:false,musicMin:0,ttsVoice:'',ttsRate:100,ttsPitch:100,ttsVol:100,ttsWho:'all',ttsMax:150};
 const THEMES=[
  ['classic','Классика','free','Rubik','#ff4d5e','#ff8a3d'],['minimal','Минимал','free','Rubik','#ffffff','#9aa0ff'],['glass','Стекло','free','Rubik','#7aa2ff','#c084fc'],['mint','Мята','free','Rubik','#34d399','#22d3ee'],
  ['neon','Неон','pro','Russo One','#00f0ff','#ff2bd6'],['sunset','Закат','pro','Oswald','#ff5e9c','#ffb347'],['gold','Золото','pro','Playfair Display','#f6d365','#b8841f'],['pixel','Пиксель 8-бит','pro','Press Start 2P','#ffcd75','#ef7d57'],['cyber','Киберпанк','pro','Unbounded','#fcee0a','#ff2a6d'],
  ['fire','Огонь','max','Russo One','#ff3d00','#ffc400'],['aurora','Аврора','max','Manrope','#22d3ee','#a78bfa'],['sakura','Сакура','max','Comfortaa','#ff8fb8','#ffd1e3'],['hologram','Голограмма','max','Unbounded','#7cf7ff','#9b8cff']
 ].map(a=>({id:a[0],name:a[1],tier:a[2],font:a[3],c1:a[4],c2:a[5]}));
+const COVERS=[['list','Список','free'],['hero','Обложка','free'],['podium','Подиум','pro'],['league','Лига','pro'],['city','Закат города','pro'],['galaxy','Космос','max'],['crown','Корона','max']].map(a=>({id:a[0],name:a[1],tier:a[2]}));
+const coverOk=(id,f)=>{const t=COVERS.find(x=>x.id===id)||COVERS[1];return t.tier==='free'||(t.tier==='pro'&&!!f.design)||(t.tier==='max'&&!!f.design2)};
 const THEME=id=>THEMES.find(t=>t.id===id)||THEMES[0];
 const themeOk=(id,f)=>{const t=THEME(id);return t.tier==='free'||(t.tier==='pro'&&!!f.design)||(t.tier==='max'&&!!f.design2)};
 const YT=/(?:https?:\/\/)?(?:www\.|m\.|music\.)?(?:youtube\.com\/(?:watch\?[^\s]*?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i;
@@ -35,6 +37,7 @@ const mkey=()=>new Date(Date.now()+5*3600000).toISOString().slice(0,7);
 const usedOf=s=>{const m=mkey();if(!s.used||s.used.m!==m)s.used={m,n:0};return s.used};
 const cfg=s=>{const c={...DEF,...(s.cfg||{})},f=planOf(s).f;
   if(!themeOk(c.theme,f))c.theme='classic';
+  if(!coverOk(c.topCover,f))c.topCover='hero';
   if(!f.music)c.musicOn=false;
   if(!f.sounds&&c.sound!=='none')c.sound='chime';
   if(!f.tts)c.tts=false;
@@ -42,7 +45,7 @@ const cfg=s=>{const c={...DEF,...(s.cfg||{})},f=planOf(s).f;
   if(!f.filters){c.min=0;c.ttsMin=0;c.bad='';c.block=''}
   c.brand=!!f.brand;return c};
 function cleanCfg(i,o){const c={...DEF,...(o||{})};i=i||{};
-  if(THEMES.some(t=>t.id===i.theme))c.theme=i.theme;
+  if(THEMES.some(t=>t.id===i.theme))c.theme=i.theme;if(COVERS.some(t=>t.id===i.topCover))c.topCover=i.topCover;
   if('musicOn' in i)c.musicOn=!!i.musicOn;if('musicMin' in i)c.musicMin=clamp(i.musicMin,0,1e7,c.musicMin);
   if('ttsVoice' in i)c.ttsVoice=str(i.ttsVoice,100);if('ttsRate' in i)c.ttsRate=clamp(i.ttsRate,50,200,100);if('ttsPitch' in i)c.ttsPitch=clamp(i.ttsPitch,0,200,100);if('ttsVol' in i)c.ttsVol=clamp(i.ttsVol,0,100,100);if('ttsMax' in i)c.ttsMax=clamp(i.ttsMax,20,300,150);if(['all','msg','name'].includes(i.ttsWho))c.ttsWho=i.ttsWho;
   if(SOUNDS.includes(i.sound))c.sound=i.sound;if(POS.includes(i.pos))c.pos=i.pos;
@@ -57,7 +60,7 @@ const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const words=t=>String(t||'').split(/[,\n]/).map(x=>x.trim().toLowerCase()).filter(x=>x.length>1);
 const clean=(t,c)=>{t=String(t||'');for(const w of words(c.bad))t=t.replace(new RegExp(esc(w),'gi'),m=>'*'.repeat(m.length));return t};
 const isBlocked=(n,c)=>{n=String(n||'').toLowerCase();return words(c.block).some(w=>n.includes(w))};
-const sty=c=>{const t=THEME(c.theme);return {theme:t.id,c1:t.c1,c2:t.c2,font:t.font,sound:c.sound,vol:c.vol,pos:c.pos,cur:c.cur,lang:c.lang,brand:!!c.brand,tv:c.ttsVoice,tr:c.ttsRate,tp:c.ttsPitch,tl:c.ttsVol,tw:c.ttsWho,tm:c.ttsMax}};
+const sty=c=>{const t=THEME(c.theme);return {theme:t.id,c1:t.c1,c2:t.c2,font:t.font,sound:c.sound,vol:c.vol,pos:c.pos,cur:c.cur,lang:c.lang,brand:!!c.brand,tc:c.topCover,tv:c.ttsVoice,tr:c.ttsRate,tp:c.ttsPitch,tl:c.ttsVol,tw:c.ttsWho,tm:c.ttsMax}};
 const clients={},hits={};
 const limited=(ip,max,tag)=>{const k=ip+'|'+(tag||'')+':'+Math.floor(Date.now()/60000);hits[k]=(hits[k]||0)+1;return hits[k]>max};
 setInterval(()=>{const n=Math.floor(Date.now()/60000)-2;for(const k in hits)if(+k.split(':').pop()<n)delete hits[k]},120000);
@@ -91,8 +94,8 @@ function widget(s){
   const cur=all.filter(d=>d.ts>=(c.goalStart||0)).reduce((a,d)=>a+d.amount,0);
   const f=planOf(s).f,rec=all.slice(-5).reverse().map(d=>({name:clean((s.nicks&&s.nicks[d.name])||d.name,c),amount:d.amount,msg:clean(d.msg,c)}));
   const top2=Object.values(m).sort((a,b)=>b.total-a.total);
-  return {goal:{on:c.goalOn&&c.goalTarget>0,title:c.goalTitle,target:c.goalTarget,current:cur},top:f.top?top:[],
-    recent:rec,last:rec[0]||null,ticker:f.widgets?rec:[],leader:f.widgets2?(top2[0]||null):null,locks:{top:!f.top,goal:!f.goal,ticker:!f.widgets,leader:!f.widgets2,music:!f.music},
+  return {goal:{on:c.goalOn&&c.goalTarget>0,title:c.goalTitle,target:c.goalTarget,current:cur},top:top,need:top.length>=5?top[4].total+1:0,
+    recent:rec,last:rec[0]||null,ticker:f.widgets?rec:[],leader:f.widgets2?(top2[0]||null):null,locks:{top:false,goal:!f.goal,ticker:!f.widgets,leader:!f.widgets2,music:!f.music},
     music:(f.music&&c.musicOn)?musicQ(s).slice(0,15):[],style:sty(c)}}
 const musicQ=s=>{const c=cfg(s);return db.donations.filter(d=>d.slug===s.slug&&d.status==='confirmed'&&!d.rep&&!d.played&&d.amount>=(c.musicMin||0)&&ytId(d.msg)).sort((a,b)=>a.ts-b.ts).map(d=>({id:d.id,vid:ytId(d.msg),name:clean((s.nicks&&s.nicks[d.name])||d.name,c),amount:d.amount,ts:d.ts,msg:String(d.msg||'').replace(YT,'').trim().slice(0,80)}))};
 function ranking(period){
@@ -132,7 +135,7 @@ function notify(q){
   s.log.unshift({ts:Date.now(),raw,amount:a,name,result});s.log.length=Math.min(s.log.length,20);save();
   return [200,{ok:1,result}]}
 const pubSet=()=>({kaspi:str(db.settings.kaspi,60),tg:str(db.settings.tg,80),wa:str(db.settings.wa,80)});
-const view=s=>{const pl=planOf(s),u=usedOf(s),ch=db.chats[s.slug];return {themes:THEMES,slug:s.slug,name:s.name,kaspi:s.kaspi,okey:s.okey,nkey:s.nkey,auto:!!s.auto,cfg:cfg(s),stats:stats(s),log:(s.log||[]).slice(0,15),
+const view=s=>{const pl=planOf(s),u=usedOf(s),ch=db.chats[s.slug];return {themes:THEMES,covers:COVERS,slug:s.slug,name:s.name,kaspi:s.kaspi,okey:s.okey,nkey:s.nkey,auto:!!s.auto,cfg:cfg(s),stats:stats(s),log:(s.log||[]).slice(0,15),
   donations:db.donations.filter(d=>d.slug===s.slug).slice(-Math.min(150,pl.f.history>0?pl.f.history:150)).reverse(),
   plan:{id:pl.id,name:pl.name,f:pl.f,until:isAdmin(s)?0:(pl.id==='free'?0:s.planUntil),admin:isAdmin(s)},plans:plans(),usage:{n:u.n,limit:pl.f.alerts},
   payments:db.payments.filter(x=>x.slug===s.slug).slice(-5).reverse(),pay:pubSet(),unread:ch?ch.uu||0:0,banned:!!s.banned,
@@ -146,6 +149,7 @@ http.createServer(async(req,res)=>{
   if(req.method==='GET'){
     if(p==='/')return pageT(req,res,'landing.html');
     if(p==='/alert.css')return fs.readFile(path.join(__dirname,'alert.css'),(e,d)=>{if(e){res.writeHead(404);return res.end()}res.writeHead(200,{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache','Access-Control-Allow-Origin':'*'});res.end(d)});
+    if(p==='/alert.js')return fs.readFile(path.join(__dirname,'alert.js'),(e,d)=>{if(e){res.writeHead(404);return res.end()}res.writeHead(200,{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache','Access-Control-Allow-Origin':'*'});res.end(d)});
     if(p==='/panel')return page(res,'index.html');
     if(p==='/admin')return page(res,'admin.html');
     if(p==='/top')return pageT(req,res,'top.html');
@@ -267,6 +271,7 @@ http.createServer(async(req,res)=>{
   if(p==='/api/settings'){
     if('name' in b)s.name=str(b.name,40)||s.name;if('kaspi' in b)s.kaspi=str(b.kaspi,60);if('auto' in b)s.auto=!!b.auto;
     if(b.cfg){const f=planOf(s).f,old={...DEF,...(s.cfg||{})},n=cleanCfg(b.cfg,s.cfg);
+      if(!coverOk(n.topCover,f))n.topCover=coverOk(old.topCover,f)?old.topCover:'hero';
       if(!themeOk(n.theme,f))n.theme=themeOk(old.theme,f)?old.theme:'classic';
       if(!f.music)['musicOn','musicMin'].forEach(k=>n[k]=old[k]);
       if(!f.sounds&&n.sound!=='none')n.sound='chime';
