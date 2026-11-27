@@ -47,30 +47,34 @@ function next(){
  setTimeout(function(){e.classList.remove('in');e.classList.add('out');setTimeout(function(){st.innerHTML='';busy=false;next()},450)},(v.dur||8)*1000)}
 function wcls(c){return 'w '+(c||'')+' t-'+TH}
 var MP={cur:null,player:null,ready:false,queue:[]};
+var PER=/-day$/.test(W)?'day':/-month$/.test(W)?'month':'all',BASE=W.replace(/-(day|month)$/,''),CNT=Number(qs.get('n'))||10;
 function widget(){
- fetch('/api/widget/'+slug+'?key='+encodeURIComponent(key)).then(function(r){return r.json()}).then(function(d){
+ fetch('/api/widget/'+slug+'?key='+encodeURIComponent(key)+'&p='+PER+'&n='+CNT).then(function(r){return r.json()}).then(function(d){
   if(d.error)return;style(d.style);var L=d.locks||{};
-  if(W==='goal'){
+  if(BASE==='goal'){
    if(L.goal||!d.goal.on){wg.innerHTML='';return}
    var p=Math.min(100,Math.round(d.goal.current/d.goal.target*100));
    wg.innerHTML='<div class="'+wcls()+'"><div class="gt"><div></div><span>'+fmt(d.goal.current)+OF[LANG]+fmt(d.goal.target)+'</span></div><div class="track"><div class="fill"></div></div><div class="gp">'+p+'%</div></div>';
    wg.querySelector('.gt div').textContent=d.goal.title||GOALT[LANG];
    setTimeout(function(){var f=wg.querySelector('.fill');if(f)f.style.width=p+'%'},50)}
-  else if(W==='top'){
-   wg.innerHTML=TopCover.render((d.style&&d.style.tc)||'hero',d.top,d.need,CUR,LANG)}
-  else if(W==='last'){
+  else if(BASE==='top'){
+   var tl={day:d.titles&&d.titles.day,month:d.titles&&d.titles.month,all:d.titles&&d.titles.all};
+   wg.innerHTML=TopCover.render((d.style&&d.style.tc)||'hero',d.top,d.need,CUR,LANG,TopCover.title(PER,LANG,tl[PER]))}
+  else if(BASE==='last'){
    var l=d.last;if(!l){wg.innerHTML='';return}
    wg.innerHTML='<div class="'+wcls('last')+'"><div class="ln"></div><div class="ls"></div><div class="lm"></div></div>';var q=wg.firstChild;
    q.children[0].textContent=l.name+PH[LANG];q.children[1].textContent=fmt(l.amount);q.children[2].textContent=l.msg||''}
-  else if(W==='ticker'){
-   if(L.ticker||!d.ticker.length){wg.innerHTML='';return}
+  else if(BASE==='ticker'){
+   if(L.ticker||!d.tick.length){wg.innerHTML='';return}
+   var tl2={day:d.titles&&d.titles.day,month:d.titles&&d.titles.month,all:d.titles&&d.titles.all};
    wg.innerHTML='<div class="'+wcls('tick')+'" style="max-width:none"><div class="tr"></div></div>';var tr=wg.querySelector('.tr');
-   d.ticker.forEach(function(t){var sp=document.createElement('span');sp.textContent=t.name+' — ';var b=document.createElement('b');b.textContent=fmt(t.amount);sp.appendChild(b);tr.appendChild(sp)})}
-  else if(W==='leader'){
+   var hd=document.createElement('span');var hb=document.createElement('b');hb.textContent=TopCover.title(PER,LANG,tl2[PER])+':';hd.appendChild(hb);tr.appendChild(hd);
+   d.tick.forEach(function(t){var sp=document.createElement('span');sp.textContent=t.name+' — ';var b=document.createElement('b');b.textContent=fmt(t.total);sp.appendChild(b);tr.appendChild(sp)})}
+  else if(BASE==='leader'){
    if(L.leader||!d.leader){wg.innerHTML='';return}
    wg.innerHTML='<div class="'+wcls('lead')+'"><div class="cr">👑</div><div class="lt">'+({ru:'Лидер',en:'Top donor',kk:'Көшбасшы'}[LANG])+'</div><div class="ln"></div><div class="ls"></div></div>';
    wg.querySelector('.ln').textContent=d.leader.name;wg.querySelector('.ls').textContent=fmt(d.leader.total)}
-  else if(W==='music'){musicUpdate(d)}
+  else if(BASE==='music'){musicUpdate(d)}
  }).catch(function(){})}
 function musicUpdate(d){
  MP.queue=d.music||[];
