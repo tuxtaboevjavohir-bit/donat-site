@@ -1,6 +1,7 @@
 <!DOCTYPE html><html lang="ru" translate="no"><head><meta charset="utf-8"><meta name="google" content="notranslate"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Донат-алерт</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800&family=Montserrat:wght@600;800&family=Manrope:wght@500;600;700;800&family=Russo+One&family=Comfortaa:wght@600;700&subset=cyrillic&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Playfair+Display:wght@700;900&family=Press+Start+2P&family=Unbounded:wght@500;700;800&subset=cyrillic&display=swap"><link rel="stylesheet" href="/alert.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{--bg:#0d0d14;--card:#16161f;--ln:#262634;--tx:#f4f3f8;--mut:#9a98ab;--in:#1d1d29;--c1:#ff4d5e;--c2:#ff8a3d;--ok:#35d07f}
@@ -40,7 +41,17 @@ button{font:inherit;cursor:pointer}
 .rt{color:var(--mut)}.rt.on{color:var(--ok);border-color:var(--ok)}
 .dc{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--ln);border-radius:18px;padding:14px 16px;margin-bottom:10px}.dc .m{flex:1;min-width:0}
 .dc .n{font-size:17px;font-weight:800}.dc .n em{font-style:normal;color:var(--mut);font-weight:500;font-size:14px;margin:0 4px}.dc .n b{color:#f1c040;font-family:ui-monospace,Menlo,monospace}.dc .n i{font-style:normal;color:var(--mut);font-size:12px;font-weight:600}
-.dc .t,.dc .w{color:var(--mut);font-size:14px;margin-top:4px;overflow-wrap:anywhere}.dc .w{font-size:12px;opacity:.8}.dc .acts{display:flex;gap:6px}
+.dc .t,.dc .dd{color:var(--mut);font-size:14px;margin-top:4px;overflow-wrap:anywhere}.dc .dd{font-size:12px;opacity:.8}.dc .acts{display:flex;gap:6px}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:12px}
+.tcard{position:relative;border:2px solid var(--ln);border-radius:18px;padding:8px;background:var(--in);cursor:pointer;text-align:left;color:var(--tx);transition:border-color .15s,transform .15s}.tcard:hover{transform:translateY(-2px)}.tcard.on{border-color:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 25%,transparent)}
+.tcard .vp{height:132px;border-radius:12px;overflow:hidden;position:relative;background:radial-gradient(circle at 15% 20%,#4b3a9e,transparent 55%),radial-gradient(circle at 85% 85%,#0e7490,transparent 55%),#14141e}
+.tcard .vp .al{position:absolute;left:8px;top:8px;width:620px;max-width:none;transform:scale(.56);transform-origin:0 0;opacity:1;transition:none}.tcard .vp .bar{display:none}
+.tcard .tn{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-weight:800;padding:0 4px}
+.tg2{font-size:11px;font-weight:800;border-radius:99px;padding:3px 9px;background:rgba(53,208,127,.16);color:var(--ok)}.tg2.pro{background:rgba(255,170,0,.18);color:#e8a100}.tg2.max{background:linear-gradient(120deg,#a78bfa,#22d3ee);color:#fff}
+.tcard.lk .vp:after{content:"🔒";position:absolute;right:8px;top:6px;font-size:18px;background:rgba(0,0,0,.55);border-radius:99px;padding:3px 7px}
+.wl{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--ln);flex-wrap:wrap}.wl:first-of-type{border-top:0}.wl .wi{flex:1;min-width:200px}.wl .wi b{display:block}.wl .wi small{color:var(--mut)}.wl .link{flex:2;min-width:240px;margin:0}
+.qi{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--ln)}.qi:first-child{border-top:0}.qi img{width:96px;height:54px;border-radius:8px;object-fit:cover;background:#000;flex:none}.qi .m{flex:1;min-width:0}.qi .n{font-weight:800}.qi .t{color:var(--mut);font-size:13px;overflow-wrap:anywhere}
+#ytbox{aspect-ratio:16/9;max-width:560px;border-radius:14px;overflow:hidden;background:#000;margin-top:12px}#ytbox iframe{width:100%;height:100%;border:0}
 .it{display:flex;gap:10px;align-items:center;padding:11px 0;border-top:1px solid var(--ln)}.it:first-child{border-top:0}
 .it .m{flex:1;min-width:0}.it .n{font-weight:800}.it .t{color:var(--mut);font-size:13px;overflow-wrap:anywhere}.it .a{font-weight:800;white-space:nowrap}
 .tag{font-size:11px;font-weight:800;border-radius:6px;padding:2px 6px;margin-left:6px;background:var(--in);color:var(--mut)}.tag.pend{background:rgba(255,184,0,.18);color:#ffb800}
@@ -109,8 +120,8 @@ function authView(){
  $('tr').onclick=function(){reg=true;$('tr').className='tab on';$('tl').className='tab';$('rg').style.display='block';$('go').textContent='Создать аккаунт'};
  $('go').onclick=function(){$('er').textContent='';api(reg?'/api/register':'/api/login',{slug:$('sl').value,password:$('pw').value,name:reg?$('nm').value:'',kaspi:reg?$('kp').value:'',ref:reg?refCode():''}).then(function(j){setTok(j.token);location.reload()}).catch(function(e){$('er').textContent=e.message})}}
 /* ---------- панель ---------- */
-var NAV=[['Главная',[['v','Обзор'],['d','Донаты'],['b','Тариф'],['n','Новости']]],['Виджеты',[['o','Плашка и оформление'],['g','Цель и топ'],['c','Оверлей и подключение']]],['Профиль',[['r','Рефералы'],['h','Поддержка'],['s','Безопасность']]]];
-var TT={v:'Обзор',d:'Донаты',b:'Тариф',n:'Новости',o:'Плашка и оформление',g:'Цель и топ',c:'Оверлей и подключение',r:'Рефералы',h:'Поддержка',s:'Безопасность'};
+var NAV=[['Главная',[['v','Обзор'],['d','Донаты'],['b','Тариф'],['n','Новости']]],['Виджеты',[['o','Темы плашки'],['z','Звук и озвучка'],['m','Музыка'],['g','Виджеты'],['c','Оверлей и подключение']]],['Профиль',[['r','Рефералы'],['h','Поддержка'],['s','Безопасность']]]];
+var TT={v:'Обзор',d:'Донаты',b:'Тариф',n:'Новости',o:'Темы плашки',z:'Звук и озвучка',m:'Музыка',g:'Виджеты',c:'Оверлей и подключение',r:'Рефералы',h:'Поддержка',s:'Безопасность'};
 function origin(){return location.origin}
 function ovLink(w){return origin()+'/o/'+M.slug+'/'+M.okey+(w?'/'+w:'')}
 function build(){
@@ -140,25 +151,33 @@ function build(){
  +'<div class="card" id="pcard"><h3>Ожидают подтверждения</h3><div id="pend"><p class="hint">Нет</p></div></div>'
  +'<div id="hist"><p class="hint">Загрузка…</p></div></div>';
  /* design */
- h+='<div class="pane" id="p-o"><div class="card"><h3>Оформление плашки</h3><div class="lockn" id="lk-design"></div><div class="pv"><div><div class="w" id="pw1">Айдос задонатил(а)</div><div class="s" id="ps">1 000 ₸</div><div class="mg">Привет, стример!</div></div></div>'
- +'<div class="g2"><div><label>Цвет 1</label><input type="color" id="c1"></div><div><label>Цвет 2</label><input type="color" id="c2"></div></div>'
- +'<div class="g3"><div><label>Шрифт</label><select id="font"><option>Rubik</option><option>Montserrat</option><option>Manrope</option><option>Russo One</option><option>Comfortaa</option></select></div>'
- +'<div><label>Позиция</label><select id="pos"><option value="bottom">Снизу</option><option value="center">По центру</option><option value="top">Сверху</option></select></div>'
- +'<div><label>Показ, сек</label><input type="number" id="dur" min="3" max="30"></div></div>'
- +'<div class="g2"><div><label>Звук</label><select id="sound"><option value="chime">Мелодия</option><option value="bell">Колокольчик</option><option value="coin">Монета</option><option value="none">Без звука</option></select></div><div><label>Громкость: <span id="vv"></span>%</label><input type="range" id="vol" min="0" max="100"></div></div>'
- +'<div class="row"><button class="b" id="snd">▶ Прослушать</button><button class="b" id="tst2">Тест в эфире</button></div></div>'
+ h+='<div class="pane" id="p-o"><div class="card"><h3>Тема плашки</h3><p class="hint">Выберите готовое оформление — оно сразу применится в эфире. Платные темы помечены 🔒, их открывает тариф.</p><div class="tgrid" id="tg"></div><div class="row"><button class="b" id="tst2">Тест в эфире</button></div></div>'
+ +'<div class="card"><h3>Показ плашки</h3><div class="g2"><div><label>Позиция на экране</label><select id="pos"><option value="bottom">Снизу</option><option value="center">По центру</option><option value="top">Сверху</option></select></div><div><label>Показ, сек</label><input type="number" id="dur" min="3" max="30"></div></div></div>'
  +'<div class="card"><h3>Язык, валюта и рейтинг</h3><div class="g2"><div><label>Язык плашки и страницы зрителей</label><select id="lang"><option value="ru">Русский</option><option value="en">English</option><option value="kk">Қазақша</option></select></div><div><label>Валюта</label><select id="cur"><option>₸</option><option>₽</option><option>$</option><option>€</option><option>₴</option><option>сом</option></select></div></div>'
  +'<label class="chk"><input type="checkbox" id="pub">Показывать меня в общем рейтинге стримеров и в поиске</label><p class="hint">Видны только имя, ссылка на страницу доната и суммы. Выключите — страница не попадёт в рейтинг и в Google. <a href="/top" target="_blank" style="color:var(--c1)">Открыть рейтинг</a></p></div>'
- +'<div class="card"><h3>Фильтры и озвучка</h3><div class="lockn" id="lk-filters"></div><div class="g2"><div><label>Минимальная сумма, ₸</label><input type="number" id="min" min="0"></div><div><label>Озвучка от суммы, ₸</label><input type="number" id="ttsMin" min="0"></div></div>'
- +'<label class="chk"><input type="checkbox" id="tts">Озвучивать сообщения</label>'
+ +'<div class="card"><h3>Фильтры</h3><div class="lockn" id="lk-filters"></div><div class="g2"><div><label>Минимальная сумма для показа</label><input type="number" id="min" min="0"></div><div></div></div>'
  +'<label>Запрещённые слова (через запятую) — заменяются на ***</label><textarea id="bad"></textarea>'
  +'<label>Чёрный список имён (через запятую) — такие донаты не показываются</label><textarea id="block"></textarea></div>'
  +'<button class="b p" id="sv1" style="width:100%;padding:14px">Сохранить</button></div>';
+ /* sound & voice */
+ h+='<div class="pane" id="p-z"><div class="card"><h3>Звук плашки</h3><div class="lockn" id="lk-snd"></div><div class="g2"><div><label>Звук</label><select id="sound"><option value="chime">Мелодия</option><option value="bell">Колокольчик</option><option value="coin">Монета</option><option value="none">Без звука</option></select></div><div><label>Громкость: <span id="vv"></span>%</label><input type="range" id="vol" min="0" max="100"></div></div><div class="row"><button class="b" id="snd">▶ Прослушать</button></div></div>'
+ +'<div class="card"><h3>Озвучка сообщений</h3><p class="hint">Плашка зачитывает донат вслух голосом вашего компьютера. Список голосов берётся из системы — на Mac это Milena, Yuri и другие (Системные настройки → Универсальный доступ → Речь).</p><div class="lockn" id="lk-tts"></div>'
+ +'<label class="chk"><input type="checkbox" id="tts">Озвучивать донаты</label>'
+ +'<div class="g2"><div><label>Озвучка от суммы</label><input type="number" id="ttsMin" min="0"></div><div><label>Что читать</label><select id="ttsWho"><option value="all">Имя, сумму и сообщение</option><option value="msg">Только сообщение</option><option value="name">Только имя и сумму</option></select></div></div>'
+ +'<label>Голос</label><select id="ttsVoice"><option value="">Авто (по языку)</option></select>'
+ +'<div class="g3"><div><label>Скорость: <span id="vr"></span>%</label><input type="range" id="ttsRate" min="50" max="200"></div><div><label>Тон: <span id="vp"></span>%</label><input type="range" id="ttsPitch" min="0" max="200"></div><div><label>Громкость: <span id="vl"></span>%</label><input type="range" id="ttsVol" min="0" max="100"></div></div>'
+ +'<label>Макс. длина озвучки, символов</label><input type="number" id="ttsMax" min="20" max="300">'
+ +'<div class="row"><button class="b" id="tts-try">▶ Прослушать голос</button><button class="b p" id="sv4">Сохранить</button></div></div></div>';
+ /* music */
+ h+='<div class="pane" id="p-m"><div class="card"><h3>Музыка по заказу зрителей</h3><p class="hint">Зритель отправляет донат и вставляет ссылку YouTube в сообщение — трек попадает в очередь. Включите приём и ссылку-виджет добавьте в эфир: он сам проиграет очередь.</p><div class="lockn" id="lk-music"></div>'
+ +'<label class="chk"><input type="checkbox" id="musicOn">Принимать музыкальные заказы</label><label>Минимальная сумма для заказа трека</label><input type="number" id="musicMin" min="0">'
+ +'<label>Ссылка виджета «Музыка» (источник «Ссылка»)</label><div class="link"><input type="text" id="lm" readonly><button class="b s" data-cp="lm">Копировать</button></div><div class="row"><button class="b p" id="sv5">Сохранить</button></div></div>'
+ +'<div class="card"><h3>Очередь</h3><div id="mq"><p class="hint">Пока пусто</p></div><div id="ytbox" style="display:none"><div id="ytp2"></div></div><div class="row"><button class="b p" id="mplay">▶ Играть в панели</button><button class="b" id="mskip">⏭ Пропустить</button></div><p class="hint">Плеер в панели нужен, чтобы быстро послушать трек. В эфир музыку выводит виджет по ссылке выше.</p></div>'
+ +'<div class="card"><h3>Уже сыграло</h3><div id="mh"><p class="hint">Пока ничего</p></div></div></div>';
  /* goal */
  h+='<div class="pane" id="p-g"><div class="card"><h3>Цель сбора</h3><div class="lockn" id="lk-goal"></div><label class="chk"><input type="checkbox" id="goalOn">Показывать цель</label><label>Название</label><input type="text" id="goalTitle" maxlength="60" placeholder="Например, на новый микрофон"><label>Сумма цели, ₸</label><input type="number" id="goalTarget" min="0">'
  +'<div class="row"><button class="b p" id="sv2">Сохранить</button><button class="b d" id="gr">Сбросить прогресс</button></div></div>'
- +'<div class="card"><h3>Виджеты в эфир</h3><p class="hint">Добавьте как отдельные источники-ссылки. Топ и цель обновляются сами.</p>'
- +'<label>Цель</label><div class="link"><input type="text" id="lg" readonly><button class="b s" data-cp="lg">Копировать</button></div><label>Топ донатеров</label><div class="link"><input type="text" id="lt" readonly><button class="b s" data-cp="lt">Копировать</button></div></div></div>';
+ +'<div class="card"><h3>Виджеты в эфир</h3><p class="hint">Каждый виджет — отдельный источник «Ссылка» в TikTok LIVE Studio. Все подстраиваются под выбранную тему и обновляются сами.</p><div id="wlist"></div></div></div>';
  /* connect */
  h+='<div class="pane" id="p-c"><div class="card"><h3>Ваш профиль</h3><label>Имя</label><input type="text" id="pn" maxlength="40"><label>Номер Kaspi (показывается зрителям)</label><input type="text" id="pk" maxlength="60"><button class="b p" id="sv3" style="margin-top:14px">Сохранить</button></div>'
  +'<div class="card"><h3>Оверлей для эфира</h3><p class="hint">Секретная ссылка — не показывайте её на стриме и в скриншотах.</p><label>Плашки донатов</label><div class="link"><input type="text" id="lo" readonly><button class="b s" data-cp="lo">Копировать</button></div><label>Запасная короткая ссылка</label><div class="link"><input type="text" id="ls" readonly><button class="b s" data-cp="ls">Копировать</button></div><div class="row"><button class="b" id="opn">Открыть</button></div></div>'
@@ -176,27 +195,50 @@ function build(){
  +'<div class="row"><button class="b d" id="ro">Обновить ключ оверлея</button><button class="b d" id="rn">Обновить ключ уведомлений</button></div></div>'
  +'<div class="card"><h3>Смена пароля</h3><label>Текущий пароль</label><input type="password" id="op"><label>Новый пароль (от 6 символов)</label><input type="password" id="np"><button class="b p" id="cpw" style="margin-top:14px">Сменить пароль</button><div class="err" id="pe"></div></div></div>';
  $('app').innerHTML=h+'</div></div>';
- document.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){$('side').classList.remove('open');$('shade').classList.remove('open');$('mtit').textContent=TT[b.getAttribute('data-t')]||'';document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===b)});document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('on',p.id==='p-'+b.getAttribute('data-t'))})}});
+ document.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){$('side').classList.remove('open');$('shade').classList.remove('open');if(b.getAttribute('data-t')==='m')loadMusic();$('mtit').textContent=TT[b.getAttribute('data-t')]||'';document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===b)});document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('on',p.id==='p-'+b.getAttribute('data-t'))})}});
  document.querySelectorAll('[data-cp]').forEach(function(b){b.onclick=function(){copy($(b.getAttribute('data-cp')).value)}});
  $('out').onclick=function(){setTok('');location.reload()};
  fill();bind();
 }
-function cfgVal(){var c={};['c1','c2','font','pos','sound','goalTitle','lang','cur'].forEach(function(k){c[k]=$(k).value});
- ['dur','vol','min','ttsMin','goalTarget'].forEach(function(k){c[k]=Number($(k).value)||0});['tts','goalOn','pub'].forEach(function(k){c[k]=$(k).checked});c.bad=$('bad').value;c.block=$('block').value;return c}
-function fill(){var c=M.cfg;['c1','c2','font','pos','sound','goalTitle','dur','vol','min','ttsMin','goalTarget','bad','block','lang','cur'].forEach(function(k){$(k).value=c[k]});$('pub').checked=c.pub!==false;
+function cfgVal(){var c={theme:curTheme};['pos','sound','goalTitle','lang','cur','ttsVoice','ttsWho'].forEach(function(k){c[k]=$(k).value});
+ ['dur','vol','min','ttsMin','goalTarget','musicMin','ttsRate','ttsPitch','ttsVol','ttsMax'].forEach(function(k){c[k]=Number($(k).value)||0});['tts','goalOn','pub','musicOn'].forEach(function(k){c[k]=$(k).checked});c.bad=$('bad').value;c.block=$('block').value;return c}
+function fill(){var c=M.cfg;curTheme=c.theme||'classic';['pos','sound','goalTitle','dur','vol','min','ttsMin','goalTarget','bad','block','lang','cur','musicMin','ttsRate','ttsPitch','ttsVol','ttsMax','ttsWho'].forEach(function(k){$(k).value=c[k]});fillVoices(c.ttsVoice);$('musicOn').checked=!!c.musicOn;$('pub').checked=c.pub!==false;
  $('tts').checked=c.tts;$('goalOn').checked=c.goalOn;$('pn').value=M.name||'';$('pk').value=M.kaspi||'';$('auto').checked=M.auto;
- $('lg').value=ovLink('goal');$('lt').value=ovLink('top');$('lo').value=ovLink();$('ls').value=origin()+'/w/'+M.okey;$('lv').value=origin()+'/s/'+M.slug;
+ $('lm').value=ovLink('music');renderWl();renderThemes();$('lo').value=ovLink();$('ls').value=origin()+'/w/'+M.okey;$('lv').value=origin()+'/s/'+M.slug;
  $('ln').value=origin()+'/api/notify?key='+M.nkey;$('qr').innerHTML='';try{new QRCode($('qr'),{text:$('lv').value,width:132,height:132,correctLevel:QRCode.CorrectLevel.M})}catch(e){}pv()}
-function pv(){var c={c1:$('c1').value,c2:$('c2').value};var r=document.documentElement.style;r.setProperty('--c1',c.c1);r.setProperty('--c2',c.c2);
- document.querySelector('.pv').style.fontFamily="'"+$('font').value+"',sans-serif";$('vv').textContent=$('vol').value}
+function pv(){$('vv').textContent=$('vol').value;$('vr').textContent=$('ttsRate').value;$('vp').textContent=$('ttsPitch').value;$('vl').textContent=$('ttsVol').value}
+var curTheme='classic';
+function renderThemes(){var g=$('tg');if(!g||!M.themes)return;var f=M.plan.f,h='';
+ M.themes.forEach(function(t){var ok=t.tier==='free'||(t.tier==='pro'&&f.design)||(t.tier==='max'&&f.design2);
+  h+='<button type="button" class="tcard'+(t.id===curTheme?' on':'')+(ok?'':' lk')+'" data-th="'+t.id+'"><div class="vp"><div class="al in t-'+t.id+'" style="--f:\''+t.font+'\'"><div class="in-box"><div class="who"><b>Айдос К.</b> задонатил(а)</div><div class="sum">1 000 ₸</div><div class="amsg">Привет, стример!</div></div></div></div><div class="tn"><span>'+esc(t.name)+'</span><span class="tg2 '+t.tier+'">'+(t.tier==='free'?'Бесплатно':t.tier==='pro'?'Pro':'Max')+'</span></div></button>'});
+ if(g.getAttribute('data-sig')!==h+curTheme+JSON.stringify(f)){g.setAttribute('data-sig',h+curTheme+JSON.stringify(f));g.innerHTML=h}}
+var VOICES=[];
+function fillVoices(sel){var e=$('ttsVoice');if(!e)return;try{VOICES=(window.speechSynthesis&&speechSynthesis.getVoices())||[]}catch(x){}
+ var h='<option value="">Авто (по языку)</option>';VOICES.slice().sort(function(a,b){return (a.lang===b.lang?0:a.lang<b.lang?-1:1)||a.name.localeCompare(b.name)}).forEach(function(v){h+='<option value="'+esc(v.name)+'">'+esc(v.name)+' ('+esc(v.lang)+')</option>'});
+ if(sel&&VOICES.every(function(v){return v.name!==sel}))h+='<option value="'+esc(sel)+'">'+esc(sel)+' (нет на этом устройстве)</option>';e.innerHTML=h;e.value=sel||''}
+if(window.speechSynthesis)speechSynthesis.onvoiceschanged=function(){if(M)fillVoices(M.cfg.ttsVoice)};
+function tryVoice(){try{var l=$('lang').value,t={ru:'Айдос задонатил 1000 тенге. Привет, стример!',en:'Aidos donated 1000 tenge. Hello, streamer!',kk:'Айдос 1000 теңге донат жіберді. Сәлем, стример!'}[l],u=new SpeechSynthesisUtterance(t);
+ u.lang={ru:'ru-RU',en:'en-US',kk:'kk-KZ'}[l];u.rate=$('ttsRate').value/100;u.pitch=$('ttsPitch').value/100;u.volume=$('ttsVol').value/100;var n=$('ttsVoice').value;
+ if(n)VOICES.forEach(function(v){if(v.name===n){u.voice=v;u.lang=v.lang}});speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){toast('Голос недоступен в этом браузере')}}
+var WG=[['alert','Плашка донатов','free','Главный виджет: плашка с именем, суммой и сообщением.'],['last','Последний донат','free','Карточка с последним донатом.'],['goal','Цель сбора','goal','Полоса прогресса цели.'],['top','Топ донатеров','top','Пять лучших донатеров.'],['ticker','Бегущая строка','widgets','Лента последних донатов.'],['leader','Лидер','widgets2','Корона и имя главного донатера.'],['music','Музыка','music','Плеер музыкальных заказов зрителей.']];
+function renderWl(){var f=M.plan.f,h='';WG.forEach(function(w){var ok=w[2]==='free'||f[w[2]],need=w[2]==='widgets2'?'Max':'Pro';
+ h+='<div class="wl"><div class="wi"><b>'+w[1]+' <span class="tg2 '+(w[2]==='free'?'':(need==='Max'?'max':'pro'))+'">'+(w[2]==='free'?'Бесплатно':need)+'</span></b><small>'+w[3]+'</small></div>'
+ +(ok?'<div class="link"><input type="text" readonly value="'+esc(ovLink(w[0]==='alert'?'':w[0]))+'"><button class="b s" data-cpv="1">Копировать</button></div>':'<div class="lockn" style="display:block;margin:0">🔒 Доступно на тарифе '+need+'. <a data-go="b">Выбрать тариф</a></div>')+'</div>'});
+ var e=$('wlist');if(e&&e.getAttribute('data-sig')!==h){e.setAttribute('data-sig',h);e.innerHTML=h}}
 /* sound */
 var ac;function tone(f,t0,len,v,ty){var o=ac.createOscillator(),g=ac.createGain();o.type=ty||'sine';o.frequency.value=f;var t=ac.currentTime+t0;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.001,v),t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+len);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+len+.05)}
 function play(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume()}catch(e){return}var k=$('sound').value,v=$('vol').value/100*.35;if(k==='none')return;
  if(k==='bell'){tone(880,0,1.1,v,'triangle');tone(1320,.02,.9,v*.6);tone(1760,.04,.7,v*.3)}else if(k==='coin'){tone(988,0,.12,v,'square');tone(1319,.1,.45,v,'square')}else[660,880,1320].forEach(function(f,i){tone(f,i*.12,.5,v)})}
 function saveAll(extra){var b={cfg:cfgVal(),name:$('pn').value,kaspi:$('pk').value,auto:$('auto').checked};return api('/api/settings',b).then(function(j){M.cfg=j.cfg;M.name=$('pn').value;M.kaspi=$('pk').value;toast('Сохранено')}).catch(function(e){toast(e.message)})}
 function bind(){
- ['c1','c2','font','vol'].forEach(function(k){$(k).oninput=pv});$('snd').onclick=play;
- ['sv1','sv2','sv3'].forEach(function(i){$(i).onclick=saveAll});
+ ['vol','ttsRate','ttsPitch','ttsVol'].forEach(function(k){$(k).oninput=pv});$('snd').onclick=play;$('tts-try').onclick=tryVoice;
+ ['sv1','sv2','sv3','sv4','sv5'].forEach(function(i){$(i).onclick=saveAll});
+ $('tg').onclick=function(e){var b=e.target.closest('[data-th]');if(!b)return;var id=b.getAttribute('data-th'),t=M.themes.filter(function(x){return x.id===id})[0],f=M.plan.f;
+  var ok=t.tier==='free'||(t.tier==='pro'&&f.design)||(t.tier==='max'&&f.design2);if(!ok){toast('Тема доступна на тарифе '+(t.tier==='max'?'Max':'Pro'));var gb=document.querySelector('.tab[data-t="b"]');if(gb)gb.click();return}
+  curTheme=id;renderThemes();saveAll().then(function(){return api('/api/test',{})})};
+ $('wlist').onclick=function(e){var b=e.target.closest('[data-cpv]');if(!b)return;var i=b.parentNode.querySelector('input');copy(i.value)};
+ $('mplay').onclick=function(){mplay()};$('mskip').onclick=function(){mskip()};
+ $('mq').onclick=$('mh').onclick=function(e){var b=e.target.closest('[data-m]');if(!b)return;var id=b.getAttribute('data-id');api('/api/music/done',{id:id,undo:b.getAttribute('data-m')==='undo'}).then(function(){loadMusic()})};
  $('auto').onchange=saveAll;
  $('tst').onclick=$('tst2').onclick=function(){saveAll().then(function(){return api('/api/test',{})})};
  $('mg').onclick=function(){var a=Number($('ma').value);if(!(a>0)){$('ma').focus();return}api('/api/manual',{name:$('mn').value,amount:a,msg:$('mm').value}).then(function(){$('mn').value=$('ma').value=$('mm').value='';toast('Показано');$('dman').style.display='none';load().then(fetchDon)}).catch(function(e){toast(e.message)})};
@@ -227,7 +269,7 @@ function fetchDon(){if(!M||!$('dfind'))return Promise.resolve();
   $('dlim').textContent=r.limited?'На вашем тарифе доступна история за последние '+M.plan.f.history+' донатов.':'';
   var nl=Object.keys(r.nicks||{});$('nkl').innerHTML=nl.length?nl.map(function(k){return '<span class="tg">'+esc(k)+' <i>→</i> '+esc(r.nicks[k])+'<button data-nk="'+esc(k)+'" title="Удалить">✕</button></span>'}).join(''):'<span class="hint">Пока нет никнеймов</span>';
   $('hist').innerHTML=r.items.length?r.items.map(function(d){return '<div class="dc"><div class="m"><div class="n">'+esc(d.name)+(d.orig&&d.orig!==d.name?' <i>('+esc(d.orig)+')</i>':'')+'<em>отправил</em><b>'+fmt(d.amount)+'</b>'+(d.grp?' <i>· '+d.n+' шт.</i>':'')+'</div>'
-   +(d.msg?'<div class="t">💬 '+esc(d.msg)+'</div>':'')+'<div class="w">🕒 '+dstr(d.ts)+(d.src&&SRC[d.src]?' · '+SRC[d.src]:'')+'</div></div>'
+   +(d.msg?'<div class="t">💬 '+esc(d.msg)+'</div>':'')+'<div class="dd">🕒 '+dstr(d.ts)+(d.src&&SRC[d.src]?' · '+SRC[d.src]:'')+'</div></div>'
    +(d.grp?'':'<div class="acts"><button class="b s" data-a="re" data-id="'+d.id+'">Ещё раз</button><button class="b s d" data-a="del" data-id="'+d.id+'">Удалить</button></div>')+'</div>'}).join(''):'<div class="card"><p class="hint">Донатов за этот период нет.</p></div>'}).catch(function(){})}
 function wireDon(){
  Array.prototype.forEach.call(document.querySelectorAll('#dper .ch'),function(b){b.onclick=function(){setPer(b.getAttribute('data-p'));fetchDon()}});
@@ -252,15 +294,21 @@ function paint(){var s=M.stats;
  $('log').innerHTML=M.log.length?M.log.map(function(l){return '<div class="log"><b>'+new Date(l.ts).toLocaleTimeString('ru-RU')+'</b> · '+esc(l.result)+' · '+fmt(l.amount)+' · '+esc(l.name||'—')+'<br>'+esc(l.raw)+'</div>'}).join(''):'<p class="hint">Пока ничего</p>'}
 
 function kzt(n){return Number(n).toLocaleString('ru-RU')+' ₸'}
-var FL=[['design','Свои цвета, шрифты, позиция плашки'],['sounds','Все звуки'],['tts','Озвучка сообщений'],['goal','Цель сбора'],['top','Топ донатеров'],['filters','Фильтры и чёрный список'],['star','Звезда в рейтинге'],['prio','Приоритетная поддержка']];
+var FL=[['design','Премиум-темы плашки (Неон, Закат, Золото, Пиксель, Киберпанк)'],['design2','Эксклюзивные анимированные темы (Огонь, Аврора, Сакура, Голограмма)'],['sounds','Все звуки'],['tts','Озвучка и выбор голоса'],['goal','Цель сбора'],['top','Топ донатеров'],['widgets','Бегущая строка'],['widgets2','Виджет «Лидер»'],['music','Музыка по заказу зрителей'],['filters','Фильтры и чёрный список'],['star','Звезда в рейтинге'],['prio','Приоритетная поддержка']];
 var sel={plan:'pro',months:1,show:false},planSig='',hooked=false,chatSig='';
 var DISC={1:0,3:.1,12:.2};
 function until(ts){return new Date(ts).toLocaleDateString('ru-RU')}
 function lockNote(id,ok,need){var e=$(id);if(!e)return;e.style.display=ok?'none':'block';e.innerHTML='🔒 Доступно на тарифе '+need+' и выше. <a data-go="b">Выбрать тариф</a>'}
 function lock(){var f=M.plan.f,dis=function(ids,ok){ids.forEach(function(k){var e=$(k);if(e)e.disabled=!ok})};
- dis(['c1','c2','font','pos','dur'],f.design);dis(['tts','ttsMin','min','bad','block'],true);dis(['tts'],f.tts);dis(['min','ttsMin','bad','block'],f.filters);dis(['goalOn','goalTitle','goalTarget'],f.goal);
+ dis(['tts','ttsMin','ttsVoice','ttsWho','ttsRate','ttsPitch','ttsVol','ttsMax','tts-try'],f.tts);dis(['min','bad','block'],f.filters);dis(['goalOn','goalTitle','goalTarget'],f.goal);dis(['musicOn','musicMin'],f.music);
  Array.prototype.forEach.call($('sound').options,function(o){o.disabled=!f.sounds&&o.value!=='chime'&&o.value!=='none'});
- lockNote('lk-design',f.design&&f.sounds,'Pro');lockNote('lk-filters',f.filters&&f.tts,'Pro');lockNote('lk-goal',f.goal,'Pro')}
+ lockNote('lk-snd',f.sounds,'Pro');lockNote('lk-tts',f.tts,'Pro');lockNote('lk-filters',f.filters,'Pro');lockNote('lk-goal',f.goal,'Pro');lockNote('lk-music',f.music,'Pro');renderThemes();renderWl()}
+var MQ=[],mcur=null,YP=null;
+function loadMusic(){return api('/api/music').then(function(r){MQ=r.queue;
+ $('mq').innerHTML=r.queue.length?r.queue.map(function(d,i){return '<div class="qi"><img src="https://i.ytimg.com/vi/'+d.vid+'/mqdefault.jpg" alt=""><div class="m"><div class="n">'+(i===0?'▶ ':'')+esc(d.name)+' · '+fmt(d.amount)+'</div><div class="t">'+(d.msg?esc(d.msg)+' · ':'')+'youtu.be/'+d.vid+'</div></div><button class="b s" data-m="done" data-id="'+d.id+'">Готово</button></div>'}).join(''):'<p class="hint">'+(r.on?'Очередь пуста — ждём заказы.':'Приём заказов выключен.')+'</p>';
+ $('mh').innerHTML=r.played.length?r.played.map(function(d){return '<div class="qi"><img src="https://i.ytimg.com/vi/'+d.vid+'/mqdefault.jpg" alt=""><div class="m"><div class="n">'+esc(d.name)+' · '+fmt(d.amount)+'</div><div class="t">youtu.be/'+d.vid+'</div></div><button class="b s" data-m="undo" data-id="'+d.id+'">В очередь</button></div>'}).join(''):'<p class="hint">Пока ничего</p>'}).catch(function(){})}
+function mplay(){var n=MQ[0];if(!n){toast('Очередь пуста');return}mcur=n;var b=$('ytbox');b.style.display='block';b.innerHTML='<iframe src="https://www.youtube.com/embed/'+n.vid+'?autoplay=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen></iframe>'}
+function mskip(){var n=mcur||MQ[0];if(!n)return;api('/api/music/done',{id:n.id}).then(function(){mcur=null;$('ytbox').style.display='none';$('ytbox').innerHTML='';return loadMusic()}).then(function(){if(MQ.length)mplay()})}
 function renderPlan(){var P=M.plans,cur=M.plan,sig=JSON.stringify([M.plan,M.plans,M.payments,M.pay,M.usage,sel]);if(sig===planSig)return;planSig=sig;
  var pend=M.payments.filter(function(x){return x.status==='pending'})[0];
  var h='<div class="card"><h3>Ваш тариф: '+esc(cur.name)+(cur.admin?' (владелец)':'')+'</h3><p class="hint">'+(cur.id==='free'?'Бесплатный тариф. Часть возможностей закрыта.':(cur.admin?'Владелец сайта — все возможности без ограничений.':'Действует до '+until(cur.until)))+'</p>'
@@ -317,6 +365,6 @@ function paintExtra(){
    if(t.id==='ss'){var tx=$('st').value.trim();if(!tx)return;t.disabled=true;api('/api/support',{text:tx}).then(function(){$('st').value='';chatSig='';return loadChat()}).catch(function(x){toast(x.message)}).then(function(){t.disabled=false});return}
    if(t.closest&&t.closest('.tab')&&t.closest('.tab').dataset.t==='h')loadChat()});
  }}
-function load(){return api('/api/me').then(function(j){var first=!M;M=j;if(first)build();paint();paintExtra();if(!first&&rt&&$('p-d').classList.contains('on'))fetchDon();if(!first&&$('p-h').classList.contains('on'))loadChat()}).catch(function(){})}
+function load(){return api('/api/me').then(function(j){var first=!M;M=j;if(first)build();paint();paintExtra();if(!first&&rt&&$('p-d').classList.contains('on'))fetchDon();if(!first&&$('p-m')&&$('p-m').classList.contains('on'))loadMusic();if(!first&&$('p-h').classList.contains('on'))loadChat()}).catch(function(){})}
 if(tok)load().then(function(){setInterval(load,12000)});else authView();
 </script></body></html>

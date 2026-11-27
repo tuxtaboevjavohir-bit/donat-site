@@ -11,12 +11,21 @@ const str=(v,n)=>String(v==null?'':v).trim().slice(0,n);
 const clamp=(v,a,b,d)=>{v=Number(v);return isFinite(v)?Math.min(b,Math.max(a,Math.round(v))):d};
 const CURS=['₸','₽','$','€','₴','сом'],LANGS=['ru','en','kk'];
 const FONTS=['Rubik','Montserrat','Manrope','Russo One','Comfortaa'],SOUNDS=['chime','bell','coin','none'],POS=['bottom','center','top'];
-const DEF={c1:'#ff4d5e',c2:'#ff8a3d',font:'Rubik',sound:'chime',vol:70,pos:'bottom',dur:8,min:0,tts:false,ttsMin:0,bad:'',block:'',goalOn:false,goalTitle:'',goalTarget:0,goalStart:0,cur:'₸',lang:'ru',pub:true};
+const DEF={c1:'#ff4d5e',c2:'#ff8a3d',font:'Rubik',sound:'chime',vol:70,pos:'bottom',dur:8,min:0,tts:false,ttsMin:0,bad:'',block:'',goalOn:false,goalTitle:'',goalTarget:0,goalStart:0,cur:'₸',lang:'ru',pub:true,theme:'classic',musicOn:false,musicMin:0,ttsVoice:'',ttsRate:100,ttsPitch:100,ttsVol:100,ttsWho:'all',ttsMax:150};
+const THEMES=[
+ ['classic','Классика','free','Rubik','#ff4d5e','#ff8a3d'],['minimal','Минимал','free','Rubik','#ffffff','#9aa0ff'],['glass','Стекло','free','Rubik','#7aa2ff','#c084fc'],['mint','Мята','free','Rubik','#34d399','#22d3ee'],
+ ['neon','Неон','pro','Russo One','#00f0ff','#ff2bd6'],['sunset','Закат','pro','Oswald','#ff5e9c','#ffb347'],['gold','Золото','pro','Playfair Display','#f6d365','#b8841f'],['pixel','Пиксель 8-бит','pro','Press Start 2P','#ffcd75','#ef7d57'],['cyber','Киберпанк','pro','Unbounded','#fcee0a','#ff2a6d'],
+ ['fire','Огонь','max','Russo One','#ff3d00','#ffc400'],['aurora','Аврора','max','Manrope','#22d3ee','#a78bfa'],['sakura','Сакура','max','Comfortaa','#ff8fb8','#ffd1e3'],['hologram','Голограмма','max','Unbounded','#7cf7ff','#9b8cff']
+].map(a=>({id:a[0],name:a[1],tier:a[2],font:a[3],c1:a[4],c2:a[5]}));
+const THEME=id=>THEMES.find(t=>t.id===id)||THEMES[0];
+const themeOk=(id,f)=>{const t=THEME(id);return t.tier==='free'||(t.tier==='pro'&&!!f.design)||(t.tier==='max'&&!!f.design2)};
+const YT=/(?:https?:\/\/)?(?:www\.|m\.|music\.)?(?:youtube\.com\/(?:watch\?[^\s]*?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i;
+const ytId=t=>{const m=String(t||'').match(YT);return m?m[1]:''};
 const DEFPLANS={
- free:{name:'Free',price:0,f:{alerts:30,design:false,sounds:false,tts:false,goal:false,top:false,filters:false,history:20,brand:true,prio:false,star:false}},
- pro:{name:'Pro',price:2990,f:{alerts:1000,design:true,sounds:true,tts:true,goal:true,top:true,filters:true,history:300,brand:false,prio:false,star:false}},
- max:{name:'Max',price:6990,f:{alerts:-1,design:true,sounds:true,tts:true,goal:true,top:true,filters:true,history:3000,brand:false,prio:true,star:true}}};
-const PIDS=['free','pro','max'],FBOOL=['design','sounds','tts','goal','top','filters','brand','prio','star'],FNUM=['alerts','history'];
+ free:{name:'Free',price:0,f:{alerts:30,design:false,sounds:false,tts:false,goal:false,top:false,filters:false,history:20,brand:true,prio:false,star:false,design2:false,widgets:false,widgets2:false,music:false}},
+ pro:{name:'Pro',price:2990,f:{alerts:1000,design:true,sounds:true,tts:true,goal:true,top:true,filters:true,history:300,brand:false,prio:false,star:false,design2:false,widgets:true,widgets2:false,music:true}},
+ max:{name:'Max',price:6990,f:{alerts:-1,design:true,sounds:true,tts:true,goal:true,top:true,filters:true,history:3000,brand:false,prio:true,star:true,design2:true,widgets:true,widgets2:true,music:true}}};
+const PIDS=['free','pro','max'],FBOOL=['design','design2','sounds','tts','goal','top','filters','brand','prio','star','widgets','widgets2','music'],FNUM=['alerts','history'];
 const plans=()=>{const o={};PIDS.forEach(k=>{const d=DEFPLANS[k],c=(db.plans||{})[k]||{};o[k]={name:str(c.name,20)||d.name,price:k==='free'?0:(c.price==null?d.price:Math.max(0,Math.floor(+c.price)||0)),f:{...d.f,...(c.f||{})}}});return o};
 const ADMINS=(process.env.ADMIN_SLUGS||'joha').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
 const isAdmin=s=>!!s&&ADMINS.includes(s.slug);
@@ -25,15 +34,18 @@ const planOf=s=>{const id=planId(s);return {id,...plans()[id]}};
 const mkey=()=>new Date(Date.now()+5*3600000).toISOString().slice(0,7);
 const usedOf=s=>{const m=mkey();if(!s.used||s.used.m!==m)s.used={m,n:0};return s.used};
 const cfg=s=>{const c={...DEF,...(s.cfg||{})},f=planOf(s).f;
-  if(!f.design){c.c1=DEF.c1;c.c2=DEF.c2;c.font=DEF.font;c.pos=DEF.pos;c.dur=Math.min(c.dur,8)}
+  if(!themeOk(c.theme,f))c.theme='classic';
+  if(!f.music)c.musicOn=false;
   if(!f.sounds&&c.sound!=='none')c.sound='chime';
   if(!f.tts)c.tts=false;
   if(!f.goal)c.goalOn=false;
   if(!f.filters){c.min=0;c.ttsMin=0;c.bad='';c.block=''}
   c.brand=!!f.brand;return c};
 function cleanCfg(i,o){const c={...DEF,...(o||{})};i=i||{};
-  if(/^#[0-9a-f]{6}$/i.test(i.c1))c.c1=i.c1;if(/^#[0-9a-f]{6}$/i.test(i.c2))c.c2=i.c2;
-  if(FONTS.includes(i.font))c.font=i.font;if(SOUNDS.includes(i.sound))c.sound=i.sound;if(POS.includes(i.pos))c.pos=i.pos;
+  if(THEMES.some(t=>t.id===i.theme))c.theme=i.theme;
+  if('musicOn' in i)c.musicOn=!!i.musicOn;if('musicMin' in i)c.musicMin=clamp(i.musicMin,0,1e7,c.musicMin);
+  if('ttsVoice' in i)c.ttsVoice=str(i.ttsVoice,100);if('ttsRate' in i)c.ttsRate=clamp(i.ttsRate,50,200,100);if('ttsPitch' in i)c.ttsPitch=clamp(i.ttsPitch,0,200,100);if('ttsVol' in i)c.ttsVol=clamp(i.ttsVol,0,100,100);if('ttsMax' in i)c.ttsMax=clamp(i.ttsMax,20,300,150);if(['all','msg','name'].includes(i.ttsWho))c.ttsWho=i.ttsWho;
+  if(SOUNDS.includes(i.sound))c.sound=i.sound;if(POS.includes(i.pos))c.pos=i.pos;
   if('vol' in i)c.vol=clamp(i.vol,0,100,c.vol);if('dur' in i)c.dur=clamp(i.dur,3,30,c.dur);
   if('min' in i)c.min=clamp(i.min,0,1e7,c.min);if('ttsMin' in i)c.ttsMin=clamp(i.ttsMin,0,1e7,c.ttsMin);
   if(CURS.includes(i.cur))c.cur=i.cur;if(LANGS.includes(i.lang))c.lang=i.lang;if('pub' in i)c.pub=!!i.pub;
@@ -45,7 +57,7 @@ const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const words=t=>String(t||'').split(/[,\n]/).map(x=>x.trim().toLowerCase()).filter(x=>x.length>1);
 const clean=(t,c)=>{t=String(t||'');for(const w of words(c.bad))t=t.replace(new RegExp(esc(w),'gi'),m=>'*'.repeat(m.length));return t};
 const isBlocked=(n,c)=>{n=String(n||'').toLowerCase();return words(c.block).some(w=>n.includes(w))};
-const sty=c=>({c1:c.c1,c2:c.c2,font:c.font,sound:c.sound,vol:c.vol,pos:c.pos,cur:c.cur,lang:c.lang,brand:!!c.brand});
+const sty=c=>{const t=THEME(c.theme);return {theme:t.id,c1:t.c1,c2:t.c2,font:t.font,sound:c.sound,vol:c.vol,pos:c.pos,cur:c.cur,lang:c.lang,brand:!!c.brand,tv:c.ttsVoice,tr:c.ttsRate,tp:c.ttsPitch,tl:c.ttsVol,tw:c.ttsWho,tm:c.ttsMax}};
 const clients={},hits={};
 const limited=(ip,max,tag)=>{const k=ip+'|'+(tag||'')+':'+Math.floor(Date.now()/60000);hits[k]=(hits[k]||0)+1;return hits[k]>max};
 setInterval(()=>{const n=Math.floor(Date.now()/60000)-2;for(const k in hits)if(+k.split(':').pop()<n)delete hits[k]},120000);
@@ -77,8 +89,12 @@ function widget(s){
   all.forEach(d=>{const k=d.name.toLowerCase();m[k]=m[k]||{name:clean(d.name,c),total:0};m[k].total+=d.amount});
   const top=Object.values(m).sort((a,b)=>b.total-a.total).slice(0,5);
   const cur=all.filter(d=>d.ts>=(c.goalStart||0)).reduce((a,d)=>a+d.amount,0);
-  return {goal:{on:c.goalOn&&c.goalTarget>0,title:c.goalTitle,target:c.goalTarget,current:cur},top:planOf(s).f.top?top:[],
-    recent:all.slice(-5).reverse().map(d=>({name:clean(d.name,c),amount:d.amount})),style:sty(c)}}
+  const f=planOf(s).f,rec=all.slice(-5).reverse().map(d=>({name:clean((s.nicks&&s.nicks[d.name])||d.name,c),amount:d.amount,msg:clean(d.msg,c)}));
+  const top2=Object.values(m).sort((a,b)=>b.total-a.total);
+  return {goal:{on:c.goalOn&&c.goalTarget>0,title:c.goalTitle,target:c.goalTarget,current:cur},top:f.top?top:[],
+    recent:rec,last:rec[0]||null,ticker:f.widgets?rec:[],leader:f.widgets2?(top2[0]||null):null,locks:{top:!f.top,goal:!f.goal,ticker:!f.widgets,leader:!f.widgets2,music:!f.music},
+    music:(f.music&&c.musicOn)?musicQ(s).slice(0,15):[],style:sty(c)}}
+const musicQ=s=>{const c=cfg(s);return db.donations.filter(d=>d.slug===s.slug&&d.status==='confirmed'&&!d.rep&&!d.played&&d.amount>=(c.musicMin||0)&&ytId(d.msg)).sort((a,b)=>a.ts-b.ts).map(d=>({id:d.id,vid:ytId(d.msg),name:clean((s.nicks&&s.nicks[d.name])||d.name,c),amount:d.amount,ts:d.ts,msg:String(d.msg||'').replace(YT,'').trim().slice(0,80)}))};
 function ranking(period){
   const since=period==='month'?Date.now()-30*86400000:0,agg={};
   db.donations.forEach(d=>{if(d.status!=='confirmed'||d.rep||d.ts<since)return;const a=agg[d.slug]=agg[d.slug]||{total:0,count:0};a.total+=d.amount;a.count++});
@@ -116,7 +132,7 @@ function notify(q){
   s.log.unshift({ts:Date.now(),raw,amount:a,name,result});s.log.length=Math.min(s.log.length,20);save();
   return [200,{ok:1,result}]}
 const pubSet=()=>({kaspi:str(db.settings.kaspi,60),tg:str(db.settings.tg,80),wa:str(db.settings.wa,80)});
-const view=s=>{const pl=planOf(s),u=usedOf(s),ch=db.chats[s.slug];return {slug:s.slug,name:s.name,kaspi:s.kaspi,okey:s.okey,nkey:s.nkey,auto:!!s.auto,cfg:cfg(s),stats:stats(s),log:(s.log||[]).slice(0,15),
+const view=s=>{const pl=planOf(s),u=usedOf(s),ch=db.chats[s.slug];return {themes:THEMES,slug:s.slug,name:s.name,kaspi:s.kaspi,okey:s.okey,nkey:s.nkey,auto:!!s.auto,cfg:cfg(s),stats:stats(s),log:(s.log||[]).slice(0,15),
   donations:db.donations.filter(d=>d.slug===s.slug).slice(-Math.min(150,pl.f.history>0?pl.f.history:150)).reverse(),
   plan:{id:pl.id,name:pl.name,f:pl.f,until:isAdmin(s)?0:(pl.id==='free'?0:s.planUntil),admin:isAdmin(s)},plans:plans(),usage:{n:u.n,limit:pl.f.alerts},
   payments:db.payments.filter(x=>x.slug===s.slug).slice(-5).reverse(),pay:pubSet(),unread:ch?ch.uu||0:0,banned:!!s.banned,
@@ -129,6 +145,7 @@ http.createServer(async(req,res)=>{
   if(req.method==='HEAD')req.method='GET';
   if(req.method==='GET'){
     if(p==='/')return pageT(req,res,'landing.html');
+    if(p==='/alert.css')return fs.readFile(path.join(__dirname,'alert.css'),(e,d)=>{if(e){res.writeHead(404);return res.end()}res.writeHead(200,{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache','Access-Control-Allow-Origin':'*'});res.end(d)});
     if(p==='/panel')return page(res,'index.html');
     if(p==='/admin')return page(res,'admin.html');
     if(p==='/top')return pageT(req,res,'top.html');
@@ -141,9 +158,9 @@ http.createServer(async(req,res)=>{
       if(!t)return pageT(req,res,'donate.html',{TITLE:'Донат стримеру',DESC:'Страница донатов',ROBOTS:'noindex',SLUG:m[1]});
       const c=cfg(t);return pageT(req,res,'donate.html',{TITLE:t.name+' — донат на стриме',DESC:'Поддержать стримера '+t.name+': перевод через Kaspi, ваше сообщение появится в прямом эфире TikTok LIVE.',ROBOTS:c.pub?'index,follow':'noindex',SLUG:m[1]})}
     if(/^\/overlay\/[a-z0-9_]+$/.test(p))return page(res,'overlay.html');
-    if(/^\/o\/[a-z0-9_]+\/[a-f0-9]+(\/(alert|goal|top))?$/.test(p))return page(res,'overlay.html');
+    if(/^\/o\/[a-z0-9_]+\/[a-f0-9]+(\/(alert|goal|top|last|ticker|leader|music))?$/.test(p))return page(res,'overlay.html');
     if(p==='/alert'){const k=u.searchParams.get('token')||u.searchParams.get('key')||'',w=u.searchParams.get('w');const t=Object.values(db.streamers).find(x=>x.okey&&x.okey===k);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{'Access-Control-Allow-Origin':'*',Location:'/o/'+t.slug+'/'+t.okey+(/^(goal|top)$/.test(w)?'/'+w:'')});return res.end()}
-    if(m=p.match(/^\/w\/([a-f0-9]+)(?:\/(alert|goal|top))?$/)){const t=Object.values(db.streamers).find(x=>x.okey===m[1]);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{'Access-Control-Allow-Origin':'*',Location:'/o/'+t.slug+'/'+t.okey+(m[2]?'/'+m[2]:'')});return res.end()}
+    if(m=p.match(/^\/w\/([a-f0-9]+)(?:\/(alert|goal|top|last|ticker|leader|music))?$/)){const t=Object.values(db.streamers).find(x=>x.okey===m[1]);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{'Access-Control-Allow-Origin':'*',Location:'/o/'+t.slug+'/'+t.okey+(m[2]?'/'+m[2]:'')});return res.end()}
     if(p==='/api/notify'){if(limited(ip,60,'n'))return send(res,429,{error:'limit'});const r=notify(Object.fromEntries(u.searchParams));return send(res,r[0],r[1])}
     if(m=p.match(/^\/api\/streamer\/([a-z0-9_]+)$/)){const s=db.streamers[m[1]];if(!s||s.banned)return send(res,404,{error:'Не найден'});const w=widget(s);return send(res,200,{name:s.name,kaspi:s.kaspi,goal:w.goal,top:w.top,style:w.style})}
     if(p==='/api/plans'){const P=plans();return send(res,200,{plans:Object.fromEntries(PIDS.map(k=>[k,{name:P[k].name,price:P[k].price,f:P[k].f}])),contact:{tg:pubSet().tg,wa:pubSet().wa}})}
@@ -167,6 +184,7 @@ http.createServer(async(req,res)=>{
       let items=L.slice().reverse();
       if(g('group')==='1'){const m={};items.forEach(d=>{const x=m[d.name]=m[d.name]||{id:d.id,name:d.name,orig:d.orig,amount:0,n:0,ts:d.ts,msg:'',grp:1};x.amount+=d.amount;x.n++;if(d.ts>x.ts)x.ts=d.ts});items=Object.values(m).sort((a,b)=>b.amount-a.amount)}
       return send(res,200,{items:items.slice(0,500),total,count:L.length,max:mx?{name:mx.name,amount:mx.amount}:null,nicks:s.nicks||{},limited:pl.f.history>0})}
+    if(p==='/api/music'){const s=auth(req);if(!s)return send(res,401,{error:'auth'});const c=cfg(s);return send(res,200,{queue:musicQ(s),on:c.musicOn,min:c.musicMin,ok:!!planOf(s).f.music,played:db.donations.filter(d=>d.slug===s.slug&&d.played&&ytId(d.msg)).slice(-20).reverse().map(d=>({id:d.id,vid:ytId(d.msg),name:(s.nicks&&s.nicks[d.name])||d.name,amount:d.amount}))})}
     if(p==='/api/me'){const s=auth(req);if(!s)return send(res,401,{error:'auth'});if(!s.nkey){s.nkey=rnd(10);save()}return send(res,200,view(s))}
     if(m=p.match(/^\/api\/widget\/([a-z0-9_]+)$/)){const s=db.streamers[m[1]];if(!s||u.searchParams.get('key')!==s.okey)return send(res,403,{error:'key'});return send(res,200,widget(s))}
     if(m=p.match(/^\/api\/stream\/([a-z0-9_]+)$/)){
@@ -199,6 +217,7 @@ http.createServer(async(req,res)=>{
     const a=Math.floor(+b.amount);if(!(a>=1&&a<=10000000))return send(res,400,{error:'Неверная сумма'});
     if(isBlocked(b.name,cfg(s)))return send(res,200,{ok:1});
     mk(s.slug,b.name,a,b.msg,'pending','site');return send(res,200,{ok:1})}
+  if(p==='/api/mdone'){const t=db.streamers[str(b.slug,24)];if(!t||b.key!==t.okey)return send(res,403,{error:'key'});if(limited(ip,120,'md'))return send(res,429,{error:'limit'});const d=db.donations.find(x=>x.id===b.id&&x.slug===t.slug);if(d){d.played=true;save();push(t.slug,{type:'update'})}return send(res,200,{ok:1})}
   if(p==='/api/contact'){
     if(limited(ip,4,'contact'))return send(res,429,{error:'Слишком часто, подождите минуту'});
     const t=str(b.text,1000);if(t.length<3)return send(res,400,{error:'Напишите сообщение'});
@@ -238,6 +257,7 @@ http.createServer(async(req,res)=>{
     save();return send(res,200,{ok:1})}
   if(p==='/api/nick'){const n=str(b.name,40),k=str(b.nick,40);if(!n)return send(res,400,{error:'Укажите имя'});s.nicks=s.nicks||{};
     if(k)s.nicks[n]=k;else delete s.nicks[n];if(Object.keys(s.nicks).length>200)return send(res,400,{error:'Слишком много'});save();return send(res,200,{ok:1,nicks:s.nicks})}
+  if(p==='/api/music/done'){const d=db.donations.find(x=>x.id===b.id&&x.slug===s.slug);if(!d)return send(res,404,{error:'Нет такого'});d.played=!b.undo;save();push(s.slug,{type:'update'});return send(res,200,{ok:1})}
   if(p==='/api/manual'){
     const a=Math.floor(+b.amount);if(!(a>=1))return send(res,400,{error:'Неверная сумма'});
     show(s,mk(s.slug,b.name,a,b.msg,'confirmed','manual'),{tts:b.tts});return send(res,200,{ok:1})}
@@ -247,9 +267,10 @@ http.createServer(async(req,res)=>{
   if(p==='/api/settings'){
     if('name' in b)s.name=str(b.name,40)||s.name;if('kaspi' in b)s.kaspi=str(b.kaspi,60);if('auto' in b)s.auto=!!b.auto;
     if(b.cfg){const f=planOf(s).f,old={...DEF,...(s.cfg||{})},n=cleanCfg(b.cfg,s.cfg);
-      if(!f.design)['c1','c2','font','pos','dur'].forEach(k=>n[k]=old[k]);
+      if(!themeOk(n.theme,f))n.theme=themeOk(old.theme,f)?old.theme:'classic';
+      if(!f.music)['musicOn','musicMin'].forEach(k=>n[k]=old[k]);
       if(!f.sounds&&n.sound!=='none')n.sound='chime';
-      if(!f.tts)n.tts=old.tts;
+      if(!f.tts)['tts','ttsVoice','ttsRate','ttsPitch','ttsVol','ttsWho','ttsMax'].forEach(k=>n[k]=old[k]);
       if(!f.goal)['goalOn','goalTitle','goalTarget'].forEach(k=>n[k]=old[k]);
       if(!f.filters)['min','ttsMin','bad','block'].forEach(k=>n[k]=old[k]);
       s.cfg=n}save();push(s.slug,{type:'update'});return send(res,200,{ok:1,cfg:cfg(s)})}
