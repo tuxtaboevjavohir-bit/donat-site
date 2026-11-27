@@ -11,13 +11,17 @@ const str=(v,n)=>String(v==null?'':v).trim().slice(0,n);
 const clamp=(v,a,b,d)=>{v=Number(v);return isFinite(v)?Math.min(b,Math.max(a,Math.round(v))):d};
 const CURS=['₸','₽','$','€','₴','сом'],LANGS=['ru','en','kk'];
 const FONTS=['Rubik','Montserrat','Manrope','Russo One','Comfortaa'],SOUNDS=['chime','bell','coin','none'],POS=['bottom','center','top'];
-const DEF={c1:'#ff4d5e',c2:'#ff8a3d',font:'Rubik',sound:'chime',vol:70,pos:'bottom',dur:8,min:0,tts:false,ttsMin:0,bad:'',block:'',goalOn:false,goalTitle:'',goalTarget:0,goalStart:0,cur:'₸',lang:'ru',pub:true,theme:'classic',topCover:'hero',topTitleD:'',topTitleM:'',topTitleA:'',musicOn:false,musicMin:0,ttsVoice:'',ttsRate:100,ttsPitch:100,ttsVol:100,ttsWho:'all',ttsMax:150};
+const DEF={c1:'#ff4d5e',c2:'#ff8a3d',font:'Rubik',sound:'chime',vol:70,pos:'bottom',dur:8,min:0,tts:false,ttsMin:0,bad:'',block:'',goalOn:false,goalTitle:'',goalTarget:0,goalStart:0,cur:'₸',lang:'ru',pub:true,theme:'classic',topCover:'hero',tickCover:'classic',topTitleD:'',topTitleM:'',topTitleA:'',musicOn:false,musicMin:0,ttsVoice:'',ttsRate:100,ttsPitch:100,ttsVol:100,ttsWho:'all',ttsMax:150};
 const THEMES=[
  ['classic','Классика','free','Rubik','#ff4d5e','#ff8a3d'],['minimal','Минимал','free','Rubik','#ffffff','#9aa0ff'],['glass','Стекло','free','Rubik','#7aa2ff','#c084fc'],['mint','Мята','free','Rubik','#34d399','#22d3ee'],
  ['neon','Неон','pro','Russo One','#00f0ff','#ff2bd6'],['sunset','Закат','pro','Oswald','#ff5e9c','#ffb347'],['gold','Золото','pro','Playfair Display','#f6d365','#b8841f'],['pixel','Пиксель 8-бит','pro','Press Start 2P','#ffcd75','#ef7d57'],['cyber','Киберпанк','pro','Unbounded','#fcee0a','#ff2a6d'],
  ['fire','Огонь','max','Russo One','#ff3d00','#ffc400'],['aurora','Аврора','max','Manrope','#22d3ee','#a78bfa'],['sakura','Сакура','max','Comfortaa','#ff8fb8','#ffd1e3'],['hologram','Голограмма','max','Unbounded','#7cf7ff','#9b8cff']
 ].map(a=>({id:a[0],name:a[1],tier:a[2],font:a[3],c1:a[4],c2:a[5]}));
-const COVERS=[['list','Список','free'],['hero','Обложка','free'],['podium','Подиум','pro'],['league','Лига','pro'],['city','Закат города','pro'],['ice','Лёд','pro'],['pixel','Пиксель','pro'],['retro','Ретро-ТВ','pro'],['neonbar','Неон-бар','pro'],['galaxy','Космос','max'],['crown','Корона','max'],['fire','Огонь','max'],['sakura','Сакура','max'],['aurora','Аврора','max']].map(a=>({id:a[0],name:a[1],tier:a[2]}));
+const mkL=(arr)=>arr.map(a=>({id:a[0],name:a[1],tier:a[2]}));
+const COVERS=mkL([['list','Список','free'],['hero','Обложка','free'],['podium','Подиум','pro'],['league','Лига','pro'],['city','Закат города','pro'],['ice','Лёд','pro'],['pixel','Пиксель','pro'],['retro','Ретро-ТВ','pro'],['neonbar','Неон-бар','pro'],['ultra','Ультра-фиолет','pro'],['emerald','Изумруд','pro'],['ruby','Рубин','pro'],['galaxy','Космос','max'],['crown','Корона','max'],['fire','Огонь','max'],['sakura','Сакура','max'],['aurora','Аврора','max'],['miami','Майами','max'],['goldlux','Золотой люкс','max'],['chrome','Хром','max']]);
+const TICKS=mkL([['classic','Классика','free'],['minimal','Минимал','free'],['neon','Неон','pro'],['ultra','Ультра-фиолет','pro'],['ice','Лёд','pro'],['matrix','Матрица','pro'],['sunset','Закат','pro'],['fire','Огонь','max'],['gold','Золото','max'],['miami','Майами','max'],['aurora','Аврора','max']]);
+const tierOk=(t,f)=>t.tier==='free'||(t.tier==='pro'&&!!f.design)||(t.tier==='max'&&!!f.design2);
+const tickOk=(id,f)=>{const t=TICKS.find(x=>x.id===id);return !!t&&tierOk(t,f)};
 const coverOk=(id,f)=>{const t=COVERS.find(x=>x.id===id)||COVERS[1];return t.tier==='free'||(t.tier==='pro'&&!!f.design)||(t.tier==='max'&&!!f.design2)};
 const THEME=id=>THEMES.find(t=>t.id===id)||THEMES[0];
 const themeOk=(id,f)=>{const t=THEME(id);return t.tier==='free'||(t.tier==='pro'&&!!f.design)||(t.tier==='max'&&!!f.design2)};
@@ -38,6 +42,7 @@ const usedOf=s=>{const m=mkey();if(!s.used||s.used.m!==m)s.used={m,n:0};return s
 const cfg=s=>{const c={...DEF,...(s.cfg||{})},f=planOf(s).f;
   if(!themeOk(c.theme,f))c.theme='classic';
   if(!coverOk(c.topCover,f))c.topCover='hero';
+  if(!tickOk(c.tickCover,f))c.tickCover='classic';
   if(!f.music)c.musicOn=false;
   if(!f.sounds&&c.sound!=='none')c.sound='chime';
   if(!f.tts)c.tts=false;
@@ -45,7 +50,7 @@ const cfg=s=>{const c={...DEF,...(s.cfg||{})},f=planOf(s).f;
   if(!f.filters){c.min=0;c.ttsMin=0;c.bad='';c.block=''}
   c.brand=!!f.brand;return c};
 function cleanCfg(i,o){const c={...DEF,...(o||{})};i=i||{};
-  if(THEMES.some(t=>t.id===i.theme))c.theme=i.theme;if(COVERS.some(t=>t.id===i.topCover))c.topCover=i.topCover;['topTitleD','topTitleM','topTitleA'].forEach(k=>{if(k in i)c[k]=str(i[k],24)});
+  if(THEMES.some(t=>t.id===i.theme))c.theme=i.theme;if(COVERS.some(t=>t.id===i.topCover))c.topCover=i.topCover;if(TICKS.some(t=>t.id===i.tickCover))c.tickCover=i.tickCover;['topTitleD','topTitleM','topTitleA'].forEach(k=>{if(k in i)c[k]=str(i[k],24)});
   if('musicOn' in i)c.musicOn=!!i.musicOn;if('musicMin' in i)c.musicMin=clamp(i.musicMin,0,1e7,c.musicMin);
   if('ttsVoice' in i)c.ttsVoice=str(i.ttsVoice,100);if('ttsRate' in i)c.ttsRate=clamp(i.ttsRate,50,200,100);if('ttsPitch' in i)c.ttsPitch=clamp(i.ttsPitch,0,200,100);if('ttsVol' in i)c.ttsVol=clamp(i.ttsVol,0,100,100);if('ttsMax' in i)c.ttsMax=clamp(i.ttsMax,20,300,150);if(['all','msg','name'].includes(i.ttsWho))c.ttsWho=i.ttsWho;
   if(SOUNDS.includes(i.sound))c.sound=i.sound;if(POS.includes(i.pos))c.pos=i.pos;
@@ -60,7 +65,7 @@ const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const words=t=>String(t||'').split(/[,\n]/).map(x=>x.trim().toLowerCase()).filter(x=>x.length>1);
 const clean=(t,c)=>{t=String(t||'');for(const w of words(c.bad))t=t.replace(new RegExp(esc(w),'gi'),m=>'*'.repeat(m.length));return t};
 const isBlocked=(n,c)=>{n=String(n||'').toLowerCase();return words(c.block).some(w=>n.includes(w))};
-const sty=c=>{const t=THEME(c.theme);return {theme:t.id,c1:t.c1,c2:t.c2,font:t.font,sound:c.sound,vol:c.vol,pos:c.pos,cur:c.cur,lang:c.lang,brand:!!c.brand,tc:c.topCover,tv:c.ttsVoice,tr:c.ttsRate,tp:c.ttsPitch,tl:c.ttsVol,tw:c.ttsWho,tm:c.ttsMax}};
+const sty=c=>{const t=THEME(c.theme);return {theme:t.id,c1:t.c1,c2:t.c2,font:t.font,sound:c.sound,vol:c.vol,pos:c.pos,cur:c.cur,lang:c.lang,brand:!!c.brand,tc:c.topCover,tk:c.tickCover,tv:c.ttsVoice,tr:c.ttsRate,tp:c.ttsPitch,tl:c.ttsVol,tw:c.ttsWho,tm:c.ttsMax}};
 const clients={},hits={};
 const limited=(ip,max,tag)=>{const k=ip+'|'+(tag||'')+':'+Math.floor(Date.now()/60000);hits[k]=(hits[k]||0)+1;return hits[k]>max};
 setInterval(()=>{const n=Math.floor(Date.now()/60000)-2;for(const k in hits)if(+k.split(':').pop()<n)delete hits[k]},120000);
@@ -135,7 +140,7 @@ function notify(q){
   s.log.unshift({ts:Date.now(),raw,amount:a,name,result});s.log.length=Math.min(s.log.length,20);save();
   return [200,{ok:1,result}]}
 const pubSet=()=>({kaspi:str(db.settings.kaspi,60),tg:str(db.settings.tg,80),wa:str(db.settings.wa,80),sc:str(db.settings.sc,300)});
-const view=s=>{const pl=planOf(s),u=usedOf(s),ch=db.chats[s.slug];return {themes:THEMES,covers:COVERS,slug:s.slug,name:s.name,kaspi:s.kaspi,okey:s.okey,nkey:s.nkey,auto:!!s.auto,cfg:cfg(s),stats:stats(s),log:(s.log||[]).slice(0,15),
+const view=s=>{const pl=planOf(s),u=usedOf(s),ch=db.chats[s.slug];return {themes:THEMES,covers:COVERS,ticks:TICKS,slug:s.slug,name:s.name,kaspi:s.kaspi,okey:s.okey,nkey:s.nkey,auto:!!s.auto,cfg:cfg(s),stats:stats(s),log:(s.log||[]).slice(0,15),
   donations:db.donations.filter(d=>d.slug===s.slug).slice(-Math.min(150,pl.f.history>0?pl.f.history:150)).reverse(),
   plan:{id:pl.id,name:pl.name,f:pl.f,until:isAdmin(s)?0:(pl.id==='free'?0:s.planUntil),admin:isAdmin(s)},plans:plans(),usage:{n:u.n,limit:pl.f.alerts},
   payments:db.payments.filter(x=>x.slug===s.slug).slice(-5).reverse(),pay:pubSet(),unread:ch?ch.uu||0:0,banned:!!s.banned,
@@ -271,6 +276,7 @@ http.createServer(async(req,res)=>{
   if(p==='/api/settings'){
     if('name' in b)s.name=str(b.name,40)||s.name;if('kaspi' in b)s.kaspi=str(b.kaspi,60);if('auto' in b)s.auto=!!b.auto;
     if(b.cfg){const f=planOf(s).f,old={...DEF,...(s.cfg||{})},n=cleanCfg(b.cfg,s.cfg);
+      if(!tickOk(n.tickCover,f))n.tickCover=tickOk(old.tickCover,f)?old.tickCover:'classic';
       if(!coverOk(n.topCover,f))n.topCover=coverOk(old.topCover,f)?old.topCover:'hero';
       if(!themeOk(n.theme,f))n.theme=themeOk(old.theme,f)?old.theme:'classic';
       if(!f.music)['musicOn','musicMin'].forEach(k=>n[k]=old[k]);

@@ -7,10 +7,10 @@ var MEN=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPT
 var T={ru:{d:'ТОП ДНЯ',a:'ТОП СТРИМА',l:'ЛИДЕР',n:'ещё {n} — до ТОП-5',e:'Пока пусто'},en:{d:'TOP OF THE DAY',a:'TOP OF STREAM',l:'LEADER',n:'{n} more to enter TOP-5',e:'Nothing yet'},kk:{d:'КҮН ТОБЫ',a:'СТРИМ ТОПЫ',l:'КӨШБАСШЫ',n:'ТОП-5 үшін тағы {n}',e:'Әзірге бос'}};
 function stars(n,t){var h='';for(var i=1;i<=t;i++)h+=i<=n?'★':'☆';return h}
 function money(n,c){return Number(n).toLocaleString('ru-RU')+' '+c}
-var LG={list:0,league:1,neonbar:1,pixel:0},POD={podium:1,sakura:1};
+var LG={list:0,league:1,neonbar:1,pixel:0,emerald:1},POD={podium:1,sakura:1};
 function title(per,lang,custom){if(custom)return custom;var L=T[lang]||T.ru,m=new Date(Date.now()+5*3600000).getUTCMonth();
  if(per==='day')return L.d;if(per==='month')return lang==='en'?'TOP '+MEN[m]:lang==='kk'?'АЙ ТОБЫ':'ТОП '+MRU[m];return L.a}
-window.TopCover={title:title,render:function(cover,top,need,cur,lang,ttl){
+window.TopCover={tick:function(cover,list,cur,ttl,pv){var h='<div class="w tick tk-'+cover+'"><div class="ktr'+(pv?' kpv':'')+'"><span class="ktt">'+esc(ttl)+'</span>';(list||[]).forEach(function(d){h+='<span class="kti">'+esc(d.name)+' <b>'+money(d.total,cur||'₸')+'</b></span>'});return h+'</div></div>'},title:title,render:function(cover,top,need,cur,lang,ttl){
  var L=T[lang]||T.ru;top=top||[];cur=cur||'₸';ttl=ttl||L.a;
  var cls='w tp cv-'+cover;
  if(!top.length)return '<div class="'+cls+'"><div class="tph"><b>'+esc(ttl)+'</b></div><div class="tpf">'+L.e+'</div></div>';

@@ -67,9 +67,7 @@ function widget(){
   else if(BASE==='ticker'){
    if(L.ticker||!d.tick.length){wg.innerHTML='';return}
    var tl2={day:d.titles&&d.titles.day,month:d.titles&&d.titles.month,all:d.titles&&d.titles.all};
-   wg.innerHTML='<div class="'+wcls('tick')+'" style="max-width:none"><div class="tr"></div></div>';var tr=wg.querySelector('.tr');
-   var hd=document.createElement('span');var hb=document.createElement('b');hb.textContent=TopCover.title(PER,LANG,tl2[PER])+':';hd.appendChild(hb);tr.appendChild(hd);
-   d.tick.forEach(function(t){var sp=document.createElement('span');sp.textContent=t.name+' — ';var b=document.createElement('b');b.textContent=fmt(t.total);sp.appendChild(b);tr.appendChild(sp)})}
+   wg.innerHTML=TopCover.tick((d.style&&d.style.tk)||'classic',d.tick,CUR,TopCover.title(PER,LANG,tl2[PER])+':',false)}
   else if(BASE==='leader'){
    if(L.leader||!d.leader){wg.innerHTML='';return}
    wg.innerHTML='<div class="'+wcls('lead')+'"><div class="cr">👑</div><div class="lt">'+({ru:'Лидер',en:'Top donor',kk:'Көшбасшы'}[LANG])+'</div><div class="ln"></div><div class="ls"></div></div>';
