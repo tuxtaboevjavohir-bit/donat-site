@@ -15,6 +15,7 @@
 .who b{font-weight:800}
 .sum{font-size:56px;font-weight:800;line-height:1.1;margin:4px 0 2px;background:linear-gradient(120deg,#fff,color-mix(in srgb,var(--c2) 60%,#fff));-webkit-background-clip:text;background-clip:text;color:transparent;animation:pop .6s cubic-bezier(.2,1.6,.4,1) .15s both}
 .msg{font-size:24px;font-weight:500;line-height:1.3;overflow-wrap:anywhere;margin-top:6px}
+.brand{text-align:center;font-size:12px;font-weight:700;opacity:.8;margin-top:10px;letter-spacing:.3px}
 .bar{position:absolute;left:0;bottom:0;height:5px;background:linear-gradient(90deg,var(--c1),var(--c2));width:100%;transform-origin:left;animation:shrink linear forwards}
 @keyframes shrink{to{transform:scaleX(0)}}@keyframes pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
 .w{width:100%;max-width:560px;border-radius:22px;padding:18px 22px;background:linear-gradient(160deg,rgba(18,18,26,.9),rgba(10,10,16,.92));border:1px solid rgba(255,255,255,.1);box-shadow:0 10px 30px rgba(0,0,0,.35)}
@@ -52,6 +53,7 @@ function next(){
  var b=e.firstChild;b.children[0].innerHTML='<b></b><span></span>';b.children[0].firstChild.textContent=v.name;b.children[0].lastChild.textContent=PH[LANG];
  b.children[1].textContent=fmt(v.amount);b.children[2].textContent=v.msg||'';if(!v.msg)b.children[2].style.display='none';
  b.children[3].style.animationDuration=(v.dur||8)+'s';
+ if(v.style&&v.style.brand){var br=document.createElement('div');br.className='brand';br.textContent='Донат-алерт · '+location.host;b.insertBefore(br,b.children[3])}
  st.innerHTML='';st.appendChild(e);requestAnimationFrame(function(){requestAnimationFrame(function(){e.classList.add('in')})});
  sound(v.style&&v.style.sound,v.style&&v.style.vol);
  if(v.tts&&v.msg&&window.speechSynthesis){try{var u=new SpeechSynthesisUtterance(v.name+SAYS[LANG]+v.msg);u.lang=VL[LANG];speechSynthesis.speak(u)}catch(x){}}
