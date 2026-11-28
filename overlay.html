@@ -11,7 +11,7 @@
 <script>
 var parts=location.pathname.split('/'),qs=new URLSearchParams(location.search),slug=parts[2],key=qs.get('key')||'',W=qs.get('w')||'alert';
 if(parts[1]==='o'){key=parts[3]||'';W=parts[4]||'alert'}
-var AL=(W==='alert'||W==='phone'),PHONE=W==='phone',BGM=qs.get('bg')||'dark',CMP=qs.get('compact')==='1';
+var AL=(W==='alert'||W==='phone'),PHONE=W==='phone',BGM=qs.get('bg')||'dark',CMP=qs.get('compact')==='1',PIP={cur:null,v:null,c:null,on:false};
 var st=document.getElementById('st'),wg=document.getElementById('wg'),q=[],busy=false,ac=null,loadedFont='';
 var CUR='₸',LANG='ru',PH={ru:' задонатил(а)',en:' donated',kk:' донат жіберді'},SAYS={ru:' пишет: ',en:' says: ',kk:' жазады: '},VL={ru:'ru-RU',en:'en-US',kk:'kk-KZ'},GOALT={ru:'Цель сбора',en:'Donation goal',kk:'Жинау мақсаты'},OF={ru:' из ',en:' of ',kk:' / '},TOPT={ru:'Топ донатеров',en:'Top donors',kk:'Үздік донатерлер'},EMPTY={ru:'Пока пусто',en:'Nothing yet',kk:'Әзірге бос'};
 function fmt(n){return Number(n).toLocaleString('ru-RU')+' '+CUR}
@@ -40,7 +40,7 @@ function next(){
  var e=document.createElement('div');e.className='al t-'+TH;e.innerHTML='<div class="in-box"><div class="who"></div><div class="sum"></div><div class="amsg"></div><div class="bar"></div></div>';
  var b=e.firstChild;b.children[0].innerHTML='<b></b><span></span>';b.children[0].firstChild.textContent=v.name;b.children[0].lastChild.textContent=PH[LANG];
  b.children[1].textContent=fmt(v.amount);b.children[2].textContent=v.msg||'';if(!v.msg)b.children[2].style.display='none';
- b.children[3].style.animationDuration=(v.dur||8)+'s';
+ b.children[3].style.animationDuration=(v.dur||8)+'s';if(PHONE)PIP.cur={name:v.name,amount:v.amount,msg:v.msg||'',end:Date.now()+(v.dur||8)*1000};
  if(v.style&&v.style.brand){var br=document.createElement('div');br.className='brand';br.textContent='Донат-алерт · '+location.host;b.insertBefore(br,b.children[3])}
  st.innerHTML='';st.appendChild(e);requestAnimationFrame(function(){requestAnimationFrame(function(){e.classList.add('in')})});
  sound(v.style&&v.style.sound,v.style&&v.style.vol);
@@ -97,12 +97,28 @@ open();
 /* ===== режим телефона ===== */
 var phLast=[];
 function phLog(d){phLast.unshift(d);phLast=phLast.slice(0,4);var l=document.getElementById('phl');if(!l)return;l.innerHTML='';phLast.forEach(function(x){var r=document.createElement('div');r.className='phr';r.innerHTML='<b></b><span></span>';r.firstChild.textContent=x.name;r.lastChild.textContent=fmt(x.amount);l.appendChild(r)})}
+function wrapTxt(c,t,mw,max){var w=t.split(/\s+/),l='',r=[];for(var i=0;i<w.length;i++){var x=l?l+' '+w[i]:w[i];if(c.measureText(x).width>mw&&l){r.push(l);l=w[i];if(r.length>=max)break}else l=x}if(l&&r.length<max)r.push(l);return r}
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function pipDraw(){var c=PIP.c,g=c.getContext('2d'),W0=c.width,H0=c.height,S=SS||{},c1=S.c1||'#ff4d5e',c2=S.c2||'#ff8a3d',a=PIP.cur&&Date.now()<PIP.cur.end?PIP.cur:null;
+ g.fillStyle='#0e0e16';g.fillRect(0,0,W0,H0);
+ if(!a){g.fillStyle='#6f6f88';g.font='600 26px Rubik,system-ui,sans-serif';g.textAlign='center';g.fillText('Донат-алерт · ждём донаты',W0/2,H0/2+8);return}
+ var bd=g.createLinearGradient(0,0,W0,H0);bd.addColorStop(0,c1);bd.addColorStop(1,c2);g.fillStyle=bd;rr(g,8,8,W0-16,H0-16,34);g.fill();
+ var bg=g.createLinearGradient(0,0,0,H0);bg.addColorStop(0,'#1c1620');bg.addColorStop(1,'#0b0b11');g.fillStyle=bg;rr(g,13,13,W0-26,H0-26,30);g.fill();
+ g.textAlign='center';g.fillStyle='#fff';g.font='800 30px Rubik,system-ui,sans-serif';var nm=a.name+(PH[LANG]||'');while(g.measureText(nm).width>W0-60&&nm.length>8)nm=nm.slice(0,-2);g.fillText(nm,W0/2,66);
+ var am=g.createLinearGradient(0,80,0,140);am.addColorStop(0,'#fff');am.addColorStop(1,c2);g.fillStyle=am;g.font='800 64px Rubik,system-ui,sans-serif';g.fillText(fmt(a.amount),W0/2,140);
+ if(a.msg){g.fillStyle='#ececf5';g.font='500 26px Rubik,system-ui,sans-serif';var ls=wrapTxt(g,a.msg,W0-70,2);ls.forEach(function(x,i){g.fillText(x,W0/2,188+i*34)})}}
+function startPip(){try{var c=document.createElement('canvas');c.width=640;c.height=280;PIP.c=c;var v=document.createElement('video');v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');v.style.cssText='position:fixed;width:2px;height:2px;opacity:0;pointer-events:none;left:0;top:0';document.body.appendChild(v);PIP.v=v;pipDraw();
+ v.srcObject=c.captureStream(15);setInterval(pipDraw,120);
+ v.play().then(function(){if(v.requestPictureInPicture)return v.requestPictureInPicture();if(v.webkitSetPresentationMode)v.webkitSetPresentationMode('picture-in-picture')}).then(function(){PIP.on=true;document.getElementById('pht').textContent='Плавающее окно включено'}).catch(function(e){document.getElementById('pht').textContent='Не удалось открыть плавающее окно: '+(e&&e.name||'ошибка')})}catch(e){document.getElementById('pht').textContent='Плавающее окно недоступно'}}
 if(PHONE){
  var css=document.createElement('style');css.textContent='html,body{background:'+(BGM==='transparent'?'transparent':BGM==='green'?'#00b140':'radial-gradient(circle at 20% 15%,#4b3a9e,transparent 55%),radial-gradient(circle at 85% 90%,#0e7490,transparent 55%),#0e0e16')+'}#st{padding:'+(CMP?'4px':'24px 14px')+'}'+(CMP?'#pht,#phl{display:none!important}.al{max-width:none!important}':'')+'#phs{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;z-index:5;background:rgba(10,10,16,.92)}#phs h2{margin:0;font-size:24px}#phs p{margin:0;color:#b9b9cc;max-width:320px;line-height:1.45}#phb{border:0;border-radius:16px;padding:16px 34px;font-size:20px;font-weight:800;color:#fff;background:linear-gradient(120deg,#ff4d5e,#ff8a3d);font-family:inherit}#pht{position:fixed;top:10px;left:0;right:0;text-align:center;font-size:12px;color:#8a8aa0;pointer-events:none}#phl{position:fixed;left:0;right:0;bottom:14px;display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none}.phr{font-size:13px;color:#9a9ab0;display:flex;gap:8px}.phr b{color:#ccd}';document.head.appendChild(css);
- var s=document.createElement('div');s.id='phs';s.innerHTML='<h2>Режим телефона</h2><p>Нажмите кнопку: включится звук и озвучка, а экран не будет гаснуть. Донаты появятся здесь.</p><button id="phb" type="button">▶ Включить</button>';document.body.appendChild(s);
+ var s=document.createElement('div');s.id='phs';s.innerHTML='<h2>Режим телефона</h2><p>Нажмите кнопку: включится звук и озвучка, а экран не будет гаснуть. Донаты появятся здесь.</p><button id="phb" type="button">▶ Включить</button><button id="php" type="button" style="display:none;border:2px solid #ff8a3d;border-radius:16px;padding:12px 22px;font-size:16px;font-weight:700;color:#ffb36b;background:transparent;font-family:inherit">🪟 Включить + плавающее окно</button><p id="phn" style="font-size:12px"></p>';document.body.appendChild(s);
  var t=document.createElement('div');t.id='pht';t.textContent='Ждём донаты…';document.body.appendChild(t);var l=document.createElement('div');l.id='phl';document.body.appendChild(l);
  st.className='center';var wl=null;
  function lock(){try{if(navigator.wakeLock&&!wl)navigator.wakeLock.request('screen').then(function(x){wl=x;x.addEventListener('release',function(){wl=null})}).catch(function(){})}catch(e){}}
  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&document.getElementById('phs')===null)lock()});
- document.getElementById('phb').onclick=function(){ctx();try{var u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}lock();try{var de=document.documentElement;(de.requestFullscreen||de.webkitRequestFullscreen||function(){}).call(de)}catch(e){}s.remove();t.textContent='Готово: ждём донаты'}}
+ document.getElementById('phb').onclick=function(){ctx();try{var u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}lock();try{var de=document.documentElement;(de.requestFullscreen||de.webkitRequestFullscreen||function(){}).call(de)}catch(e){}s.remove();t.textContent='Готово: ждём донаты'};
+ var cvTest=document.createElement('canvas'),canPip=!!(cvTest.captureStream&&(document.pictureInPictureEnabled||document.createElement('video').webkitSupportsPresentationMode));
+ if(canPip)document.getElementById('php').style.display='block';else document.getElementById('phn').textContent='Плавающее окно в этом браузере недоступно';
+ document.getElementById('php').onclick=function(){document.getElementById('phb').onclick();startPip()}}
 </script></body></html>
