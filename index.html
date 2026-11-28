@@ -48,7 +48,7 @@ button{font:inherit;cursor:pointer}
 .tpv{height:236px;margin:10px 0;position:relative;overflow:hidden;border-radius:12px;background:radial-gradient(circle at 15% 20%,#4b3a9e,transparent 55%),radial-gradient(circle at 85% 85%,#0e7490,transparent 55%),#14141e}.tpv .w{position:absolute;left:0;top:0;width:560px;max-width:none;transform:scale(.56);transform-origin:0 0}
 .tkrow{margin-top:14px;border-top:1px solid var(--ln);padding-top:14px}.tkp{border-radius:12px;overflow:hidden;background:radial-gradient(circle at 15% 20%,#4b3a9e,transparent 55%),radial-gradient(circle at 85% 85%,#0e7490,transparent 55%),#14141e;padding:14px 10px;margin-bottom:10px}.tkp .w.tick{width:100%}.tkp .ktr{font-size:18px}
 .tkc2{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.tkc2 .link{flex:1;min-width:240px;margin:0}.tkgrid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}.tkgrid .tcard .vp{height:66px;display:flex;align-items:center;padding:0 6px}.tkgrid .tcard .vp .w.tick{width:100%;margin:0}.tkgrid .tcard .ktr{font-size:16px}
-.tpv .fc-w{position:static;transform:none;width:100%;max-width:420px}
+.tcard .vp.fcvp{height:112px;display:flex;align-items:center;justify-content:center}.fcvp .fc-w{position:static;transform:scale(.62);transform-origin:center;width:420px;max-width:none;flex:none}.tpv .fc-w{position:static;transform:none;width:100%;max-width:420px}
 .tkc{display:flex;gap:8px;align-items:center;margin:0;font-size:13px;white-space:nowrap}.tkc input{width:70px}
 .stp{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--ln)}.stp>b{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(120deg,var(--c1),var(--c2));color:#fff;flex:none}.stp .m{flex:1;min-width:0}.stp .n{font-weight:800}.stp .t{color:var(--mut);font-size:13px;margin-top:2px}
 .iphst{margin-top:10px;padding:12px 14px;border-radius:14px;font-weight:700;background:var(--in);border:1px solid var(--ln)}.iphst.ok{color:var(--ok);border-color:var(--ok)}
@@ -193,6 +193,7 @@ function build(){
  +'<div class="row" style="align-items:flex-end"><div style="flex:1;min-width:200px"><label>Ник на FACEIT</label><input type="text" id="fc-nick" maxlength="40" placeholder="Например: zhokha"></div><button class="b p" id="fc-go" type="button">Подключить</button></div>'
  +'<div id="fc-st" class="hint"></div><div class="tpv" id="fc-pv" style="height:auto;min-height:150px;padding:14px;display:none"></div>'
  +'<div class="link" id="fc-lkrow" style="display:none"><input type="text" id="fc-lk" readonly><button class="b s" data-cp="fc-lk">Копировать</button></div>'
+ +'<div id="fc-cs" style="display:none"><h3 style="margin-top:18px;font-size:16px">Оформление виджета</h3><div class="tgrid" id="fc-sk"></div><div class="row" style="margin-top:12px"><label class="chk"><input type="checkbox" id="fo-n">Ник</label><label class="chk"><input type="checkbox" id="fo-e">ELO</label><label class="chk"><input type="checkbox" id="fo-s">Сессия (победы/пор.)</label><label class="chk"><input type="checkbox" id="fo-k">K/D</label><label class="chk"><input type="checkbox" id="fo-f">Форма матчей</label></div><label>Размер: <span id="fc-szv">100</span>%</label><input type="range" id="fc-sz" min="60" max="160" step="5" value="100"></div>'
  +'<div class="row" id="fc-acts" style="display:none"><button class="b" id="fc-reset" type="button">↺ Новая сессия</button><button class="b" id="fc-offb" type="button">Отключить</button></div></div>'
  +'<div class="card"><h3>Другие виджеты</h3><div id="wlist"></div></div></div>';
  /* connect */
@@ -224,13 +225,16 @@ function build(){
  fill();bind();
 }
 function cfgVal(){var c={theme:curTheme,topCover:curCover,tickCover:curTick,topTitleD:$('tt-d').value,topTitleM:$('tt-m').value,topTitleA:$('tt-a').value};['pos','sound','goalTitle','lang','cur','ttsVoice','ttsWho'].forEach(function(k){c[k]=$(k).value});
- ['dur','vol','min','ttsMin','goalTarget','musicMin','ttsRate','ttsPitch','ttsVol','ttsMax'].forEach(function(k){c[k]=Number($(k).value)||0});['tts','goalOn','pub','musicOn'].forEach(function(k){c[k]=$(k).checked});c.bad=$('bad').value;c.block=$('block').value;return c}
-function fill(){var c=M.cfg;curTheme=c.theme||'classic';curCover=c.topCover||'hero';curTick=c.tickCover||'classic';$('tt-d').value=c.topTitleD||'';$('tt-m').value=c.topTitleM||'';$('tt-a').value=c.topTitleA||'';['pos','sound','goalTitle','dur','vol','min','ttsMin','goalTarget','bad','block','lang','cur','musicMin','ttsRate','ttsPitch','ttsVol','ttsMax','ttsWho'].forEach(function(k){$(k).value=c[k]});fillVoices(c.ttsVoice);$('musicOn').checked=!!c.musicOn;$('pub').checked=c.pub!==false;
+ ['dur','vol','min','ttsMin','goalTarget','musicMin','ttsRate','ttsPitch','ttsVol','ttsMax'].forEach(function(k){c[k]=Number($(k).value)||0});['tts','goalOn','pub','musicOn'].forEach(function(k){c[k]=$(k).checked});c.bad=$('bad').value;c.block=$('block').value;c.fcSkin=curFcSk;c.fcName=$('fo-n').checked;c.fcElo=$('fo-e').checked;c.fcSes=$('fo-s').checked;c.fcKd=$('fo-k').checked;c.fcForm=$('fo-f').checked;c.fcScale=Number($('fc-sz').value)||100;return c}
+function fill(){var c=M.cfg;curTheme=c.theme||'classic';curCover=c.topCover||'hero';curTick=c.tickCover||'classic';curFcSk=c.fcSkin||'plate';$('fo-n').checked=c.fcName!==false;$('fo-e').checked=c.fcElo!==false;$('fo-s').checked=c.fcSes!==false;$('fo-k').checked=c.fcKd!==false;$('fo-f').checked=c.fcForm!==false;$('fc-sz').value=c.fcScale||100;$('fc-szv').textContent=c.fcScale||100;$('tt-d').value=c.topTitleD||'';$('tt-m').value=c.topTitleM||'';$('tt-a').value=c.topTitleA||'';['pos','sound','goalTitle','dur','vol','min','ttsMin','goalTarget','bad','block','lang','cur','musicMin','ttsRate','ttsPitch','ttsVol','ttsMax','ttsWho'].forEach(function(k){$(k).value=c[k]});fillVoices(c.ttsVoice);$('musicOn').checked=!!c.musicOn;$('pub').checked=c.pub!==false;
  $('tts').checked=c.tts;$('goalOn').checked=c.goalOn;$('pn').value=M.name||'';$('pk').value=M.kaspi||'';$('auto').checked=M.auto;
  $('lm').value=ovLink('music');renderWl();renderThemes();renderCovers();renderTw();$('lo').value=ovLink();$('ls').value=origin()+'/w/'+M.okey;$('lv').value=origin()+'/s/'+M.slug;
  $('ln').value=origin()+'/api/notify?key='+M.nkey;paintIph();$('qr').innerHTML='';try{new QRCode($('qr'),{text:$('lv').value,width:132,height:132,correctLevel:QRCode.CorrectLevel.M})}catch(e){}pv()}
 function pv(){$('vv').textContent=$('vol').value;$('vr').textContent=$('ttsRate').value;$('vp').textContent=$('ttsPitch').value;$('vl').textContent=$('ttsVol').value}
-var curTheme='classic',curCover='hero',curTick='classic';
+var curTheme='classic',curCover='hero',curTick='classic',curFcSk='plate';
+var FSAMP={on:true,nick:'zhokha',level:7,elo:1850,delta:42,wins:3,losses:1,kd:1.37,form:[1,1,0,1,1]};
+function fcOptL(){return{skin:curFcSk,n:$('fo-n').checked,e:$('fo-e').checked,s:$('fo-s').checked,k:$('fo-k').checked,f:$('fo-f').checked,z:Number($('fc-sz').value)||100}}
+function renderFcSk(){var g=$('fc-sk');if(!g||!M.fcskins)return;var f=M.plan.f,h='',lang=M.cfg.lang||'ru';M.fcskins.forEach(function(t){var ok=t.tier==='free'||(t.tier==='pro'&&f.design)||(t.tier==='max'&&f.design2);h+='<button type="button" class="tcard'+(t.id===curFcSk?' on':'')+(ok?'':' lk')+'" data-fs="'+t.id+'"><div class="vp fcvp">'+Faceit.render(FSAMP,lang,curTheme,{skin:t.id,z:100})+'</div><div class="tn"><span>'+esc(t.name)+'</span><span class="tg2 '+t.tier+'">'+(t.tier==='free'?'Бесплатно':t.tier==='pro'?'Pro':'Max')+'</span></div></button>'});var sg=h+curFcSk+JSON.stringify(f)+curTheme;if(g.getAttribute('data-sig')!==sg){g.setAttribute('data-sig',sg);g.innerHTML=h}}
 var SAMP=[{name:'Айдос К.',total:15000},{name:'Асель Н.',total:9500},{name:'Ерлан Т.',total:9200},{name:'Динара С.',total:4100},{name:'Санжар А.',total:2500}];
 var PERS=[['d','day'],['m','month'],['a','all']];
 function paintIph(){var sc=(M.pay&&M.pay.sc)||'',b=$('iph-b2'),q=$('iphqr');
@@ -244,7 +248,7 @@ function paintFc(){var d=FCD||{},ok=M.plan.f.widgets,pv=$('fc-pv');
  $('fc-go').disabled=$('fc-nick').disabled=!ok;lockNote('lk-fc',ok,'Pro');
  var off=$('fc-off');if(d.keyMissing){off.style.display='block';off.textContent='Интеграция FACEIT ещё не включена владельцем сайта (нужен ключ API).'}else off.style.display='none';
  var on=d.on&&!d.keyMissing;$('fc-acts').style.display=on?'flex':'none';$('fc-lkrow').style.display=on?'flex':'none';pv.style.display=on?'block':'none';
- if(on){pv.innerHTML=Faceit.render(d,M.cfg.lang||'ru',curTheme);$('fc-lk').value=ovLink('faceit');$('fc-st').textContent=d.error?'Ошибка: '+d.error:'Подключён ник '+d.nick+' · игра '+String(d.game||'cs2').toUpperCase()}
+ $('fc-cs').style.display=on?'block':'none';if(on){renderFcSk();pv.innerHTML=Faceit.render(d,M.cfg.lang||'ru',curTheme,fcOptL());$('fc-lk').value=ovLink('faceit');$('fc-st').textContent=d.error?'Ошибка: '+d.error:'Подключён ник '+d.nick+' · игра '+String(d.game||'cs2').toUpperCase()}
  else $('fc-st').textContent=''}
 function renderTw(){if(!$('tw3')||!M)return;var cur=M.cfg.cur||'₸',lang=M.cfg.lang||'ru',cv=(M.covers.filter(function(c){return c.id===curCover})[0]||{}).name||'';$('dsn-n').textContent=cv;var tn=(M.ticks.filter(function(c){return c.id===curTick})[0]||{}).name||'';$('dsn2-n').textContent=tn;renderTicks();
  PERS.forEach(function(p){var ttl=TopCover.title(p[1],lang,$('tt-'+p[0]).value.trim());$('tpv-'+p[0]).innerHTML=TopCover.render(curCover,SAMP,1201,cur,lang,ttl);
@@ -292,6 +296,9 @@ function bind(){
   var ok=t.tier==='free'||(t.tier==='pro'&&f.design)||(t.tier==='max'&&f.design2);if(!ok){toast('Дизайн доступен на тарифе '+(t.tier==='max'?'Max':'Pro'));var gb=document.querySelector('.tab[data-t="b"]');if(gb)gb.click();return}
   curTick=id;renderTw();$('dsn2-box').style.display='none';saveAll()};
  $('fc-go').onclick=function(){var n=$('fc-nick').value.trim();if(!n)return $('fc-nick').focus();$('fc-go').disabled=true;api('/api/faceit',{nick:n}).then(function(){toast('FACEIT подключён');return loadFaceit(true)}).catch(function(e){toast(e.message)}).then(function(){paintFc()})};
+ $('fc-sk').onclick=function(e){var b=e.target.closest('[data-fs]');if(!b)return;var id=b.getAttribute('data-fs'),t=M.fcskins.filter(function(x){return x.id===id})[0],f=M.plan.f;var ok=t.tier==='free'||(t.tier==='pro'&&f.design)||(t.tier==='max'&&f.design2);if(!ok){toast('Дизайн доступен на тарифе '+(t.tier==='max'?'Max':'Pro'));var gb=document.querySelector('.tab[data-t="b"]');if(gb)gb.click();return}curFcSk=id;paintFc();saveAll()};
+ ['fo-n','fo-e','fo-s','fo-k','fo-f'].forEach(function(k){$(k).onchange=function(){paintFc();saveAll()}});
+ $('fc-sz').oninput=function(){$('fc-szv').textContent=this.value;paintFc()};$('fc-sz').onchange=function(){saveAll()};
  $('fc-reset').onclick=function(){api('/api/faceit/reset',{}).then(function(){toast('Новая сессия начата');return loadFaceit(true)}).catch(function(e){toast(e.message)})};
  $('fc-offb').onclick=function(){api('/api/faceit/off',{}).then(function(){$('fc-nick').value='';return loadFaceit()})};
  $('dsn2').onclick=function(){var b=$('dsn2-box');b.style.display=b.style.display==='none'?'block':'none'};

@@ -28,9 +28,12 @@ window.TopCover={tick:function(cover,list,cur,ttl,pv){var h='<div class="w tick 
 (function(){
 var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
 var T={ru:{s:'За сессию',w:'Победы',l:'Пор.',kd:'K/D',e:'Нет данных'},en:{s:'Session',w:'Wins',l:'Loss',kd:'K/D',e:'No data'},kk:{s:'Сессия',w:'Жеңіс',l:'Жеңіліс',kd:'K/D',e:'Дерек жоқ'}};
-window.Faceit={render:function(d,lang,theme){var L=T[lang]||T.ru,cls='w fc-w'+(theme?' t-'+theme:'');
- if(!d||!d.on||d.error||d.locked)return '<div class="'+cls+'"><div class="fc-n">FACEIT</div><div class="fc-s">'+esc(d&&d.error?d.error:L.e)+'</div></div>';
+window.Faceit={render:function(d,lang,theme,opt){opt=opt||(d&&d.opt)||{};var L=T[lang]||T.ru,sk=opt.skin&&opt.skin!=='plate'?opt.skin:'',cls='w fc-w'+(sk?' fs-'+sk:(theme?' t-'+theme:'')),z=opt.z&&opt.z!==100?' style="zoom:'+(opt.z/100)+'"':'';
+ var no=function(k){return opt[k]===false};
+ if(!d||!d.on||d.error||d.locked)return '<div class="'+cls+'"'+z+'><div class="fc-n">FACEIT</div><div class="fc-s">'+esc(d&&d.error?d.error:L.e)+'</div></div>';
  var lv=Math.max(1,Math.min(10,Math.round(d.level)||1)),dl=Math.round(d.delta||0),sg=dl>0?'+'+dl:String(dl);
  var f=(d.form||[]).map(function(x){return '<i class="fc-d '+(x?'win':'loss')+'"></i>'}).join('');
- return '<div class="'+cls+'"><div class="fc-top"><span class="fc-b lv'+lv+'">'+lv+'</span><div class="fc-m"><div class="fc-n">'+esc(d.nick)+'</div><div class="fc-e">'+Number(d.elo||0).toLocaleString('ru-RU')+' ELO <b class="'+(dl>0?'up':dl<0?'dn':'')+'">'+sg+'</b></div></div></div>'
- +'<div class="fc-row"><div><small>'+L.s+'</small><b>'+d.wins+' / '+d.losses+'</b></div><div><small>'+L.kd+'</small><b>'+Number(d.kd||0).toFixed(2)+'</b></div><div class="fc-f">'+f+'</div></div></div>'}}})();
+ var mid=(no('n')?'':'<div class="fc-n">'+esc(d.nick)+'</div>')+(no('e')?'':'<div class="fc-e">'+Number(d.elo||0).toLocaleString('ru-RU')+' ELO <b class="'+(dl>0?'up':dl<0?'dn':'')+'">'+sg+'</b></div>');
+ var row=(no('s')?'':'<div><small>'+L.s+'</small><b>'+d.wins+' / '+d.losses+'</b></div>')+(no('k')?'':'<div><small>'+L.kd+'</small><b>'+Number(d.kd||0).toFixed(2)+'</b></div>')+(no('f')?'':'<div class="fc-f">'+f+'</div>');
+ return '<div class="'+cls+'"'+z+'><div class="fc-top"><span class="fc-b lv'+lv+'">'+lv+'</span>'+(mid?'<div class="fc-m">'+mid+'</div>':'')+'</div>'
+ +(row?'<div class="fc-row">'+row+'</div>':'')+'</div>'}}})();
