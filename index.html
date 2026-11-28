@@ -201,7 +201,7 @@ function build(){
  +'<div class="card"><h3>Оверлей для эфира</h3><p class="hint">Секретная ссылка — не показывайте её на стриме и в скриншотах.</p><label>Плашки донатов</label><div class="link"><input type="text" id="lo" readonly><button class="b s" data-cp="lo">Копировать</button></div><label>Запасная короткая ссылка</label><div class="link"><input type="text" id="ls" readonly><button class="b s" data-cp="ls">Копировать</button></div><div class="row"><button class="b" id="opn">Открыть</button></div></div>'
  +'<div class="card"><h3>Страница для зрителей</h3><div class="link"><input type="text" id="lv" readonly><button class="b s" data-cp="lv">Копировать</button></div><div class="row" style="align-items:flex-start"><div class="qr" id="qr"></div><p class="hint" style="flex:1;min-width:150px">QR-код: покажите в эфире или вставьте в описание — зритель сразу попадёт на страницу доната.</p></div></div>'
  +'<div class="card" id="iph"><h3>📱 Подключение iPhone / iPad</h3><p class="hint">Четыре шага — и донаты из Kaspi сами появляются в эфире.</p>'
- +'<div class="stp"><b>1</b><div class="m"><div class="n">Скопируйте ваш адрес</div><div class="t">Он понадобится при добавлении команды — вставите его, когда iPhone спросит.</div></div><button class="b p" id="iph-copy" type="button">Скопировать адрес</button></div>'
+ +'<div class="stp"><b>1</b><div class="m"><div class="n">Скопируйте ваш ключ</div><div class="t">Он понадобится при добавлении команды — вставите его, когда iPhone спросит. Ключ секретный: не показывайте его на стриме.</div></div><button class="b p" id="iph-copy" type="button">Скопировать ключ</button></div>'
  +'<div class="stp"><b>2</b><div class="m"><div class="n">Добавьте готовую команду</div><div class="t" id="iph-t2">Откройте эту страницу на iPhone и нажмите «Добавить команду».</div></div><div id="iph-b2"></div></div>'
  +'<div class="stp"><b>3</b><div class="m"><div class="n">Включите автоматизацию</div><div class="t">Команды → Автоматизация → <b>+</b> → Уведомление → приложение Kaspi.kz → «Выполнять сразу» → «Выполнить команду» → выберите «Kaspi → Донат-алерт».</div></div></div>'
  +'<div class="stp"><b>4</b><div class="m"><div class="n">Разрешите превью уведомлений</div><div class="t">Настройки → Уведомления → Показ миниатюр → «Всегда».</div></div></div>'
@@ -433,7 +433,7 @@ function paintExtra(){
   $('burger').onclick=function(){$('side').classList.add('open');$('shade').classList.add('open')};$('shade').onclick=function(){$('side').classList.remove('open');$('shade').classList.remove('open')};
   document.querySelectorAll('.nh').forEach(function(b){b.onclick=function(){b.parentNode.classList.toggle('cl')}});
   $('thm').onclick=function(){var cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'),nx=cur==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',nx);try{localStorage.setItem('theme',nx)}catch(e){}};
-  $('iph-copy').onclick=function(){copy($('ln').value);toast('Адрес скопирован')};
+  $('iph-copy').onclick=function(){copy(M.nkey);toast('Ключ скопирован')};
  $('qa-test').onclick=function(){saveAll().then(function(){return api('/api/test',{})})};$('qa-ov').onclick=function(){copy(ovLink())};$('qa-vw').onclick=function(){window.open(origin()+'/s/'+M.slug,'_blank')};
   document.addEventListener('click',function(e){var t=e.target;
    if(t.dataset&&t.dataset.go){var b=document.querySelector('.tab[data-t="'+t.dataset.go+'"]');if(b)b.click();return}
