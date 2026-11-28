@@ -49,6 +49,7 @@ function wcls(c){return 'w '+(c||'')+' t-'+TH}
 var MP={cur:null,player:null,ready:false,queue:[]};
 var PER=/-day$/.test(W)?'day':/-month$/.test(W)?'month':'all',BASE=W.replace(/-(day|month)$/,''),CNT=Number(qs.get('n'))||10;
 function widget(){
+ if(BASE==='faceit'){fetch('/api/fw/'+slug+'?key='+encodeURIComponent(key)).then(function(r){return r.json()}).then(function(d){if(d.style)style(d.style);wg.innerHTML=Faceit.render(d,LANG,TH)}).catch(function(){});return}
  fetch('/api/widget/'+slug+'?key='+encodeURIComponent(key)+'&p='+PER+'&n='+CNT).then(function(r){return r.json()}).then(function(d){
   if(d.error)return;style(d.style);var L=d.locks||{};
   if(BASE==='goal'){

@@ -146,6 +146,20 @@ const view=s=>{const pl=planOf(s),u=usedOf(s),ch=db.chats[s.slug];return {themes
   payments:db.payments.filter(x=>x.slug===s.slug).slice(-5).reverse(),pay:pubSet(),unread:ch?ch.uu||0:0,banned:!!s.banned,
   online:(clients[s.slug]||new Set()).size,lastNotify:(s.log&&s.log[0])?s.log[0].ts:0,news:db.news.slice(-5).reverse(),
   ref:(()=>{const all=Object.values(db.streamers).filter(x=>x.ref===s.slug);return {invited:all.length,paid:all.filter(x=>x.refPaid).length}})()}};
+// ===== FACEIT =====
+const FK=process.env.FACEIT_API_KEY||'',FB=process.env.FACEIT_BASE||'https://open.faceit.com/data/v4',fcache={};
+async function fq(p){const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);try{const r=await fetch(FB+p,{headers:{Authorization:'Bearer '+FK},signal:c.signal});if(r.status===404)return null;if(!r.ok)throw new Error('FACEIT '+r.status);return await r.json()}finally{clearTimeout(t)}}
+const fnum=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:0};
+async function faceitData(s,force){
+  const f=s.faceit;if(!f||!FK)return null;const ch=fcache[s.slug];if(!force&&ch&&Date.now()-ch.t<60000)return ch.d;
+  const p=await fq('/players/'+encodeURIComponent(f.id));if(!p)throw new Error('Игрок не найден');
+  const g=(p.games||{})[f.game]||{},elo=fnum(g.faceit_elo),lvl=fnum(g.skill_level);
+  const [ses,rec]=await Promise.all([fq('/players/'+f.id+'/games/'+f.game+'/stats?limit=100&from='+f.since),fq('/players/'+f.id+'/games/'+f.game+'/stats?limit=5')]);
+  const si=((ses&&ses.items)||[]).map(i=>i.stats||{}),ri=((rec&&rec.items)||[]).map(i=>i.stats||{});
+  const w=si.filter(x=>String(x.Result)==='1').length,k=si.reduce((a,x)=>a+fnum(x.Kills),0),d=si.reduce((a,x)=>a+fnum(x.Deaths),0);
+  const out={on:true,nick:p.nickname||f.nick,avatar:p.avatar||'',game:f.game,level:lvl,elo,delta:elo&&f.startElo?elo-f.startElo:0,wins:w,losses:si.length-w,kd:d?Math.round(k/d*100)/100:(k?k:0),form:ri.map(x=>String(x.Result)==='1'?1:0),since:f.since};
+  fcache[s.slug]={t:Date.now(),d:out};return out}
+const faceitOff=()=>({on:false,keyMissing:!FK});
 http.createServer(async(req,res)=>{
   const u=new URL(req.url,'http://x'),p=u.pathname,ip=(req.headers['x-forwarded-for']||req.socket.remoteAddress||'').split(',')[0];
   let m;
@@ -167,9 +181,9 @@ http.createServer(async(req,res)=>{
       if(!t)return pageT(req,res,'donate.html',{TITLE:'Донат стримеру',DESC:'Страница донатов',ROBOTS:'noindex',SLUG:m[1]});
       const c=cfg(t);return pageT(req,res,'donate.html',{TITLE:t.name+' — донат на стриме',DESC:'Поддержать стримера '+t.name+': перевод через Kaspi, ваше сообщение появится в прямом эфире TikTok LIVE.',ROBOTS:c.pub?'index,follow':'noindex',SLUG:m[1]})}
     if(/^\/overlay\/[a-z0-9_]+$/.test(p))return page(res,'overlay.html');
-    if(/^\/o\/[a-z0-9_]+\/[a-f0-9]+(\/(alert|goal|top|top-day|top-month|last|ticker|ticker-day|ticker-month|leader|music))?$/.test(p))return page(res,'overlay.html');
+    if(/^\/o\/[a-z0-9_]+\/[a-f0-9]+(\/(alert|goal|top|top-day|top-month|last|ticker|ticker-day|ticker-month|leader|music|faceit))?$/.test(p))return page(res,'overlay.html');
     if(p==='/alert'){const k=u.searchParams.get('token')||u.searchParams.get('key')||'',w=u.searchParams.get('w');const t=Object.values(db.streamers).find(x=>x.okey&&x.okey===k);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{'Access-Control-Allow-Origin':'*',Location:'/o/'+t.slug+'/'+t.okey+(/^(goal|top)$/.test(w)?'/'+w:'')});return res.end()}
-    if(m=p.match(/^\/w\/([a-f0-9]+)(?:\/(alert|goal|top|top-day|top-month|last|ticker|ticker-day|ticker-month|leader|music))?$/)){const t=Object.values(db.streamers).find(x=>x.okey===m[1]);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{'Access-Control-Allow-Origin':'*',Location:'/o/'+t.slug+'/'+t.okey+(m[2]?'/'+m[2]:'')});return res.end()}
+    if(m=p.match(/^\/w\/([a-f0-9]+)(?:\/(alert|goal|top|top-day|top-month|last|ticker|ticker-day|ticker-month|leader|music|faceit))?$/)){const t=Object.values(db.streamers).find(x=>x.okey===m[1]);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{'Access-Control-Allow-Origin':'*',Location:'/o/'+t.slug+'/'+t.okey+(m[2]?'/'+m[2]:'')});return res.end()}
     if(p==='/api/notify'){if(limited(ip,60,'n'))return send(res,429,{error:'limit'});const r=notify(Object.fromEntries(u.searchParams));return send(res,r[0],r[1])}
     if(m=p.match(/^\/api\/streamer\/([a-z0-9_]+)$/)){const s=db.streamers[m[1]];if(!s||s.banned)return send(res,404,{error:'Не найден'});const w=widget(s);return send(res,200,{name:s.name,kaspi:s.kaspi,goal:w.goal,top:w.top,style:w.style})}
     if(p==='/api/plans'){const P=plans();return send(res,200,{plans:Object.fromEntries(PIDS.map(k=>[k,{name:P[k].name,price:P[k].price,f:P[k].f}])),contact:{tg:pubSet().tg,wa:pubSet().wa}})}
@@ -193,6 +207,8 @@ http.createServer(async(req,res)=>{
       let items=L.slice().reverse();
       if(g('group')==='1'){const m={};items.forEach(d=>{const x=m[d.name]=m[d.name]||{id:d.id,name:d.name,orig:d.orig,amount:0,n:0,ts:d.ts,msg:'',grp:1};x.amount+=d.amount;x.n++;if(d.ts>x.ts)x.ts=d.ts});items=Object.values(m).sort((a,b)=>b.amount-a.amount)}
       return send(res,200,{items:items.slice(0,500),total,count:L.length,max:mx?{name:mx.name,amount:mx.amount}:null,nicks:s.nicks||{},limited:pl.f.history>0})}
+    if(p==='/api/faceit'){const s=auth(req);if(!s)return send(res,401,{error:'auth'});if(!s.faceit)return send(res,200,faceitOff());try{return send(res,200,await faceitData(s,u.searchParams.get('f')==='1'))}catch(e){return send(res,200,{on:true,error:e.message,nick:s.faceit.nick})}}
+    if(m=p.match(/^\/api\/fw\/([a-z0-9_]+)$/)){const s=db.streamers[m[1]];if(!s||u.searchParams.get('key')!==s.okey)return send(res,403,{error:'key'});const st=sty(cfg(s)),W=o=>send(res,200,Object.assign({style:st},o));if(!planOf(s).f.widgets)return W({on:false,locked:true});if(!s.faceit)return W(faceitOff());try{return W(await faceitData(s))}catch(e){return W({on:true,error:e.message})}}
     if(p==='/api/music'){const s=auth(req);if(!s)return send(res,401,{error:'auth'});const c=cfg(s);return send(res,200,{queue:musicQ(s),on:c.musicOn,min:c.musicMin,ok:!!planOf(s).f.music,played:db.donations.filter(d=>d.slug===s.slug&&d.played&&ytId(d.msg)).slice(-20).reverse().map(d=>({id:d.id,vid:ytId(d.msg),name:(s.nicks&&s.nicks[d.name])||d.name,amount:d.amount}))})}
     if(p==='/api/me'){const s=auth(req);if(!s)return send(res,401,{error:'auth'});if(!s.nkey){s.nkey=rnd(10);save()}return send(res,200,view(s))}
     if(m=p.match(/^\/api\/widget\/([a-z0-9_]+)$/)){const s=db.streamers[m[1]];if(!s||u.searchParams.get('key')!==s.okey)return send(res,403,{error:'key'});return send(res,200,widget(s,{p:u.searchParams.get('p'),n:u.searchParams.get('n')}))}
@@ -266,6 +282,14 @@ http.createServer(async(req,res)=>{
     save();return send(res,200,{ok:1})}
   if(p==='/api/nick'){const n=str(b.name,40),k=str(b.nick,40);if(!n)return send(res,400,{error:'Укажите имя'});s.nicks=s.nicks||{};
     if(k)s.nicks[n]=k;else delete s.nicks[n];if(Object.keys(s.nicks).length>200)return send(res,400,{error:'Слишком много'});save();return send(res,200,{ok:1,nicks:s.nicks})}
+  if(p==='/api/faceit'){if(!FK)return send(res,400,{error:'Интеграция FACEIT ещё не включена владельцем сайта'});if(!planOf(s).f.widgets)return send(res,403,{error:'Доступно на тарифе Pro'});if(limited(ip,10,'fc'))return send(res,429,{error:'Слишком часто, подождите минуту'});
+    const nick=str(b.nick,40);if(!/^[A-Za-z0-9_.\-]{2,40}$/.test(nick))return send(res,400,{error:'Введите ник FACEIT латиницей'});
+    let p0;try{p0=await fq('/players?nickname='+encodeURIComponent(nick))}catch(e){return send(res,502,{error:'FACEIT не отвечает, попробуйте позже'})}
+    if(!p0||!p0.player_id)return send(res,404,{error:'Игрок с таким ником не найден на FACEIT'});
+    const gm=p0.games||{},game=gm.cs2?'cs2':gm.csgo?'csgo':Object.keys(gm)[0];if(!game)return send(res,400,{error:'У игрока нет игр CS на FACEIT'});
+    s.faceit={nick:p0.nickname,id:p0.player_id,game,startElo:fnum(gm[game].faceit_elo),since:Date.now()};delete fcache[s.slug];save();return send(res,200,{ok:1})}
+  if(p==='/api/faceit/reset'){if(!s.faceit)return send(res,400,{error:'Сначала подключите ник'});try{const p0=await fq('/players/'+encodeURIComponent(s.faceit.id));const g=((p0&&p0.games)||{})[s.faceit.game]||{};s.faceit.startElo=fnum(g.faceit_elo)||s.faceit.startElo}catch(e){}s.faceit.since=Date.now();delete fcache[s.slug];save();return send(res,200,{ok:1})}
+  if(p==='/api/faceit/off'){delete s.faceit;delete fcache[s.slug];save();return send(res,200,{ok:1})}
   if(p==='/api/music/done'){const d=db.donations.find(x=>x.id===b.id&&x.slug===s.slug);if(!d)return send(res,404,{error:'Нет такого'});d.played=!b.undo;save();push(s.slug,{type:'update'});return send(res,200,{ok:1})}
   if(p==='/api/manual'){
     const a=Math.floor(+b.amount);if(!(a>=1))return send(res,400,{error:'Неверная сумма'});
