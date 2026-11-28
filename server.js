@@ -143,7 +143,7 @@ function notify(q){
       else{mk(s.slug,name||'Kaspi',a,cmt||'из уведомления Kaspi','pending','notify');result='pending'}}}
   s.log.unshift({ts:Date.now(),raw,amount:a,name,result});s.log.length=Math.min(s.log.length,20);save();
   return [200,{ok:1,result}]}
-const pubSet=()=>({kaspi:str(db.settings.kaspi,60),tg:str(db.settings.tg,80),wa:str(db.settings.wa,80),sc:str(db.settings.sc,300)});
+const pubSet=()=>({kaspi:str(db.settings.kaspi,60),tg:str(db.settings.tg,80),wa:str(db.settings.wa,80),sc:str(db.settings.sc,300),ma:str(db.settings.ma,300)});
 const view=s=>{const pl=planOf(s),u=usedOf(s),ch=db.chats[s.slug];return {themes:THEMES,covers:COVERS,ticks:TICKS,fcskins:FCSK,slug:s.slug,name:s.name,kaspi:s.kaspi,okey:s.okey,nkey:s.nkey,auto:!!s.auto,cfg:cfg(s),stats:stats(s),log:(s.log||[]).slice(0,15),
   donations:db.donations.filter(d=>d.slug===s.slug).slice(-Math.min(150,pl.f.history>0?pl.f.history:150)).reverse(),
   plan:{id:pl.id,name:pl.name,f:pl.f,until:isAdmin(s)?0:(pl.id==='free'?0:s.planUntil),admin:isAdmin(s)},plans:plans(),usage:{n:u.n,limit:pl.f.alerts},
@@ -276,7 +276,7 @@ http.createServer(async(req,res)=>{
       const ch=db.chats[sl]=db.chats[sl]||{msgs:[],ua:0,uu:0};ch.msgs.push({f:'a',t,ts:Date.now()});ch.uu=(ch.uu||0)+1;ch.ua=0;save();return send(res,200,{ok:1})}
     if(p==='/api/admin/contact'){const c=db.contacts.find(y=>y.id===b.id);if(!c)return send(res,404,{error:'Нет'});if(b.action==='delete')db.contacts.splice(db.contacts.indexOf(c),1);else c.done=!!b.done;save();return send(res,200,{ok:1})}
     if(p==='/api/admin/news'){if(b.del){const k=db.news.findIndex(y=>y.id===b.del);if(k>=0)db.news.splice(k,1)}else{const t=str(b.title,80),tx=str(b.text,600);if(!t)return send(res,400,{error:'Нужен заголовок'});db.news.push({id:rnd(4),title:t,text:tx,ts:Date.now()});if(db.news.length>100)db.news.splice(0,20)}save();return send(res,200,{ok:1})}
-    if(p==='/api/admin/settings'){db.settings.kaspi=str(b.kaspi,60);db.settings.tg=str(b.tg,80);db.settings.wa=str(b.wa,80);{const u=str(b.sc,300).trim();db.settings.sc=/^https:\/\/(www\.)?icloud\.com\/shortcuts\/[A-Za-z0-9]+/.test(u)?u:''}save();return send(res,200,{ok:1})}
+    if(p==='/api/admin/settings'){db.settings.kaspi=str(b.kaspi,60);db.settings.tg=str(b.tg,80);db.settings.wa=str(b.wa,80);{const u=str(b.sc,300).trim();db.settings.sc=/^https:\/\/(www\.)?icloud\.com\/shortcuts\/[A-Za-z0-9]+/.test(u)?u:''}{const m=str(b.ma,300).trim();db.settings.ma=/^https:\/\/[^\s"'<>]+$/.test(m)?m:''}save();return send(res,200,{ok:1})}
     if(p==='/api/admin/plans'){const inp=b.plans||{};PIDS.forEach(k=>{const c=inp[k];if(!c)return;const o=db.plans[k]=db.plans[k]||{};o.name=str(c.name,20)||DEFPLANS[k].name;if(k!=='free')o.price=Math.max(0,Math.floor(+c.price)||0);
         o.f=o.f||{};FBOOL.forEach(f=>{if(c.f&&f in c.f)o.f[f]=!!c.f[f]});FNUM.forEach(f=>{if(c.f&&f in c.f){const v=Math.floor(+c.f[f]);o.f[f]=Number.isFinite(v)?Math.max(-1,Math.min(1e6,v)):DEFPLANS[k].f[f]}})});
       save();return send(res,200,{ok:1,plans:plans()})}
