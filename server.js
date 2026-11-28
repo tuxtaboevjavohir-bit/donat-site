@@ -147,8 +147,8 @@ const view=s=>{const pl=planOf(s),u=usedOf(s),ch=db.chats[s.slug];return {themes
   online:(clients[s.slug]||new Set()).size,lastNotify:(s.log&&s.log[0])?s.log[0].ts:0,news:db.news.slice(-5).reverse(),
   ref:(()=>{const all=Object.values(db.streamers).filter(x=>x.ref===s.slug);return {invited:all.length,paid:all.filter(x=>x.refPaid).length}})()}};
 // ===== FACEIT =====
-const FK=(process.env.FACEIT_API_KEY||'').replace(/\s+/g,''),FB=process.env.FACEIT_BASE||'https://open.faceit.com/data/v4',fcache={};
-async function fq(p){const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);try{const r=await fetch(FB+p,{headers:{Authorization:'Bearer '+FK},signal:c.signal});if(r.status===404)return null;if(!r.ok){let tx='';try{tx=(await r.text()).slice(0,200)}catch(_){}console.log('faceit http',r.status,p.split('?')[0],tx);const e=new Error('FACEIT '+r.status+' '+p.split('?')[0].replace(/[0-9a-f-]{36}/g,'…'));e.status=r.status;throw e}return await r.json()}finally{clearTimeout(t)}}
+const FK=(process.env.FACEIT_API_KEY||'').replace(/\s+/g,'').replace(/^bearer/i,'').replace(/^["'`]+|["'`]+$/g,''),FB=process.env.FACEIT_BASE||'https://open.faceit.com/data/v4',fcache={};
+async function fq(p){const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);try{const r=await fetch(FB+p,{headers:{Authorization:'Bearer '+FK},signal:c.signal});if(r.status===404)return null;if(!r.ok){let tx='';try{tx=(await r.text()).slice(0,200)}catch(_){}console.log('faceit http',r.status,p.split('?')[0],tx);let bm='';try{const j=JSON.parse(tx);bm=String((j.errors&&j.errors[0]&&(j.errors[0].message||j.errors[0].code))||j.message||j.error||'')}catch(_){bm=tx.replace(/<[^>]*>/g,' ').trim()}const e=new Error('FACEIT '+r.status+' '+p.split('?')[0].replace(/[0-9a-f-]{36}/g,'…'));e.status=r.status;e.fb=bm.slice(0,120);throw e}return await r.json()}finally{clearTimeout(t)}}
 const fnum=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:0};
 async function faceitData(s,force){
   const f=s.faceit;if(!f||!FK)return null;const ch=fcache[s.slug];if(!force&&ch&&Date.now()-ch.t<60000)return ch.d;
@@ -159,7 +159,7 @@ async function faceitData(s,force){
   const w=si.filter(x=>String(x.Result)==='1').length,k=si.reduce((a,x)=>a+fnum(x.Kills),0),d=si.reduce((a,x)=>a+fnum(x.Deaths),0);
   const out={on:true,nick:p.nickname||f.nick,avatar:p.avatar||'',game:f.game,level:lvl,elo,delta:elo&&f.startElo?elo-f.startElo:0,wins:w,losses:si.length-w,kd:d?Math.round(k/d*100)/100:(k?k:0),form:ri.map(x=>String(x.Result)==='1'?1:0),since:f.since};
   fcache[s.slug]={t:Date.now(),d:out};return out}
-const faceitErr=e=>e.status===401||e.status===403?'FACEIT отклонил ключ API (код '+e.status+'). Владельцу: проверьте переменную FACEIT_API_KEY в Railway и тип ключа Server side':e.status===429?'FACEIT просит подождать: слишком много запросов. Попробуйте через минуту':e.status?'FACEIT вернул ошибку '+e.status+' ('+(e.message||'').replace(/^FACEIT \d+ ?/,'')+'). Попробуйте позже':e.name==='AbortError'?'FACEIT не ответил за 7 секунд, попробуйте позже':'Не удалось связаться с FACEIT ('+(e.message||e.name)+')';
+const faceitErr=e=>e.status===401||e.status===403?'FACEIT отклонил ключ API (код '+e.status+'). Владельцу: проверьте переменную FACEIT_API_KEY в Railway и тип ключа Server side':e.status===429?'FACEIT просит подождать: слишком много запросов. Попробуйте через минуту':e.status?'FACEIT вернул ошибку '+e.status+' ('+(e.message||'').replace(/^FACEIT \d+ ?/,'')+')'+(e.fb?'. Ответ FACEIT: '+e.fb:'')+'. Попробуйте позже':e.name==='AbortError'?'FACEIT не ответил за 7 секунд, попробуйте позже':'Не удалось связаться с FACEIT ('+(e.message||e.name)+')';
 const faceitOff=()=>({on:false,keyMissing:!FK});
 http.createServer(async(req,res)=>{
   const u=new URL(req.url,'http://x'),p=u.pathname,ip=(req.headers['x-forwarded-for']||req.socket.remoteAddress||'').split(',')[0];
