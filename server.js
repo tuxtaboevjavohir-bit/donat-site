@@ -186,7 +186,7 @@ http.createServer(async(req,res)=>{
       if(!t)return pageT(req,res,'donate.html',{TITLE:'Донат стримеру',DESC:'Страница донатов',ROBOTS:'noindex',SLUG:m[1]});
       const c=cfg(t);return pageT(req,res,'donate.html',{TITLE:t.name+' — донат на стриме',DESC:'Поддержать стримера '+t.name+': перевод через Kaspi, ваше сообщение появится в прямом эфире TikTok LIVE.',ROBOTS:c.pub?'index,follow':'noindex',SLUG:m[1]})}
     if(/^\/overlay\/[a-z0-9_]+$/.test(p))return page(res,'overlay.html');
-    if(/^\/o\/[a-z0-9_]+\/[a-f0-9]+(\/(alert|goal|top|top-day|top-month|last|ticker|ticker-day|ticker-month|leader|music|faceit))?$/.test(p))return page(res,'overlay.html');
+    if(/^\/o\/[a-z0-9_]+\/[a-f0-9]+(\/(alert|goal|top|top-day|top-month|last|ticker|ticker-day|ticker-month|leader|music|faceit|phone))?$/.test(p))return page(res,'overlay.html');
     if(p==='/alert'){const k=u.searchParams.get('token')||u.searchParams.get('key')||'',w=u.searchParams.get('w');const t=Object.values(db.streamers).find(x=>x.okey&&x.okey===k);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{'Access-Control-Allow-Origin':'*',Location:'/o/'+t.slug+'/'+t.okey+(/^(goal|top)$/.test(w)?'/'+w:'')});return res.end()}
     if(m=p.match(/^\/w\/([a-f0-9]+)(?:\/(alert|goal|top|top-day|top-month|last|ticker|ticker-day|ticker-month|leader|music|faceit))?$/)){const t=Object.values(db.streamers).find(x=>x.okey===m[1]);if(!t){res.writeHead(404);return res.end('404')}res.writeHead(302,{'Access-Control-Allow-Origin':'*',Location:'/o/'+t.slug+'/'+t.okey+(m[2]?'/'+m[2]:'')});return res.end()}
     if(p==='/api/notify'){if(limited(ip,60,'n'))return send(res,429,{error:'limit'});const r=notify(Object.fromEntries(u.searchParams));return send(res,r[0],r[1])}
